@@ -1,0 +1,63 @@
+/* ================================================================
+   Afrotech Academy — operator console (RBAC admin)
+   Runs on the dark theme by default for long working sessions.
+================================================================== */
+.admin { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
+
+.side {
+  background: var(--card); border-right: 1px solid var(--hair);
+  padding: var(--sp-5) var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2);
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.side__brand { display: flex; align-items: center; gap: .55rem; font-family: var(--ff-display); font-weight: 700; color: var(--ink); margin-bottom: var(--sp-5); font-size: 16px; }
+.side__group { font-family: var(--ff-mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--txt-3); margin: var(--sp-4) var(--sp-2) var(--sp-1); }
+.side a {
+  display: flex; align-items: center; gap: .65rem; padding: .6rem .75rem; border-radius: var(--r-sm);
+  font-size: var(--fs-sm); font-weight: 600; color: var(--txt-2); transition: background var(--t-fast), color var(--t-fast);
+}
+.side a:hover { background: var(--card-2); color: var(--ink); }
+.side a.is-active { background: color-mix(in srgb, var(--red) 14%, transparent); color: var(--red); }
+.side a .dot { margin-left: auto; font-family: var(--ff-mono); font-size: 11px; background: var(--red); color:#fff; border-radius: var(--r-pill); padding: 0 .5em; }
+.side__foot { margin-top: auto; padding-top: var(--sp-4); border-top: 1px solid var(--hair); font-size: var(--fs-xs); color: var(--txt-3); }
+
+.main { padding: var(--sp-6) clamp(16px, 4vw, 48px) var(--sp-9); min-width: 0; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); margin-bottom: var(--sp-6); flex-wrap: wrap; }
+.topbar h1 { font-size: var(--fs-h2); }
+.who { display: flex; align-items: center; gap: .6rem; font-size: var(--fs-sm); }
+.who .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--red); color:#fff; display: grid; place-items: center; font-family: var(--ff-display); font-weight: 700; }
+
+/* stat tiles */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: var(--sp-4); margin-bottom: var(--sp-6); }
+.stat { background: var(--card); border: 1px solid var(--hair); border-radius: var(--r-md); padding: var(--sp-5); }
+.stat .n { font-family: var(--ff-display); font-weight: 700; font-size: var(--fs-h1); color: var(--ink); line-height: 1; }
+.stat .l { font-family: var(--ff-mono); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .1em; color: var(--txt-3); margin-top: var(--sp-2); }
+.stat--accent .n { color: var(--red); }
+
+.panel { background: var(--card); border: 1px solid var(--hair); border-radius: var(--r-lg); padding: var(--sp-6); margin-bottom: var(--sp-5); }
+.panel__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-5); flex-wrap: wrap; }
+.panel__head h2 { font-size: var(--fs-h3); }
+
+.filters { display: flex; gap: var(--sp-3); flex-wrap: wrap; align-items: center; }
+.filters input, .filters select { font: inherit; font-size: var(--fs-sm); padding: .5rem .7rem; border: 1.5px solid var(--hair); border-radius: var(--r-sm); background: var(--card); color: var(--txt); }
+.btn--sm { padding: .5rem 1rem; font-size: var(--fs-sm); }
+
+/* login card */
+.auth-shell { display: grid; place-items: center; min-height: 100vh; padding: var(--sp-5); }
+.auth-card { width: min(420px, 100%); background: var(--card); border: 1px solid var(--hair); border-radius: var(--r-lg); padding: var(--sp-8); box-shadow: var(--shadow); }
+.auth-card .brand { justify-content: center; margin-bottom: var(--sp-5); }
+
+/* permission matrix */
+.matrix { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+.matrix th, .matrix td { padding: .6rem .8rem; border-bottom: 1px solid var(--hair-2); text-align: center; }
+.matrix th:first-child, .matrix td:first-child { text-align: left; }
+.matrix .yes { color: #1c7a4d; font-weight: 700; }
+.matrix .no { color: var(--txt-3); }
+
+.actions-inline { display: flex; gap: .4rem; flex-wrap: wrap; }
+.actions-inline form { display: inline; }
+
+@media (max-width: 800px) {
+  .admin { grid-template-columns: 1fr; }
+  .side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; overflow: visible; }
+  .side__group, .side__foot { display: none; }
+}

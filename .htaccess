@@ -1,0 +1,52 @@
+# Afrotech Academy — Apache front-controller rewrite (cPanel-friendly).
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Force HTTPS when available (skip on localhost dev).
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteCond %{HTTP_HOST} !^localhost [NC]
+    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Serve real files/dirs directly (assets, uploads).
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Everything else → front controller.
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Never serve config, source, storage, or dotfiles.
+RedirectMatch 404 /\.git
+<FilesMatch "\.(sql|log|md|json|lock)$">
+    Require all denied
+</FilesMatch>
+<IfModule mod_authz_core.c>
+    <FilesMatch "^\.">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+
+# Static asset caching.
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 7 days"
+    ExpiresByType application/javascript "access plus 7 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType font/woff2 "access plus 365 days"
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml application/json
+</IfModule>
+
+ErrorDocument 404 /index.php?_err=404
+ErrorDocument 500 /index.php?_err=500
+
+DirectoryIndex index.php
