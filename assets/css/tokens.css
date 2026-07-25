@@ -14,11 +14,11 @@
   --ink:        #0E0E0E;   /* headline black */
   --ink-2:      #2A2A2A;
 
-  /* Surfaces (light / paper) */
-  --paper:      #F4F1EA;   /* warm bone page background */
-  --paper-2:    #ECE7DC;
+  /* Surfaces (light) */
+  --paper:      #FBFBFB;   /* clean near-white page background */
+  --paper-2:    #F2F2F3;
   --card:       #FFFFFF;
-  --card-2:     #FBF9F4;
+  --card-2:     #F7F7F8;
 
   /* Text */
   --txt:        #131313;

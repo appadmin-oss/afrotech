@@ -1,6 +1,7 @@
-# Dependencies
-/vendor/
-composer.lock
+# NOTE: vendor/ (PHPMailer) and composer.lock are committed on purpose —
+# shared cPanel hosting has no Composer/SSH, so the dependency ships with the
+# app and needs no build step on deploy.
+vendor/bin/
 
 # Runtime storage (keep the dir, ignore contents)
 /storage/*
@@ -16,3 +17,6 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+
+# Local screenshots
+/.screenshots/

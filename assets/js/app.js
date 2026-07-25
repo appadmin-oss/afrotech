@@ -23,77 +23,44 @@
     });
   });
 
-  /* ---- Binary "10101" background effect ----------------------
-     A subtle Matrix-style rain of 0s and 1s, echoing the flier's
-     digital backdrop. Respects prefers-reduced-motion, pauses when
-     off-screen, and is purely decorative (aria-hidden). */
-  function initBinary(field) {
-    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) return;
-
-    var canvas = document.createElement('canvas');
-    canvas.setAttribute('aria-hidden', 'true');
-    field.insertBefore(canvas, field.firstChild);
-    var ctx = canvas.getContext('2d');
-    var fontSize = 16, cols = 0, drops = [], raf = null, running = false;
-
-    function readColor() {
-      var dark = document.documentElement.getAttribute('data-theme') === 'dark';
-      return dark ? 'rgba(255,255,255,0.14)' : 'rgba(228,2,43,0.16)';
-    }
-    var color = readColor();
-
-    function resize() {
-      var r = field.getBoundingClientRect();
-      canvas.width = Math.max(1, r.width);
-      canvas.height = Math.max(1, r.height);
-      cols = Math.ceil(canvas.width / fontSize);
-      drops = [];
-      for (var i = 0; i < cols; i++) drops[i] = Math.floor(Math.random() * -40);
-      color = readColor();
-    }
-
-    function draw() {
-      // Fade the previous frame for the trailing-glyph look.
-      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim() || '#F4F1EA';
-      ctx.globalAlpha = 0.08;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.globalAlpha = 1;
-
-      ctx.font = '700 ' + fontSize + 'px "JetBrains Mono", monospace';
-      ctx.fillStyle = color;
-      for (var i = 0; i < drops.length; i++) {
-        var ch = Math.random() > 0.5 ? '1' : '0';
-        var x = i * fontSize;
-        var y = drops[i] * fontSize;
-        ctx.fillText(ch, x, y);
-        if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
-        drops[i]++;
-      }
-      raf = requestAnimationFrame(draw);
-    }
-
-    function start() { if (!running) { running = true; draw(); } }
-    function stop() { running = false; if (raf) cancelAnimationFrame(raf); raf = null; }
-
-    resize();
-    window.addEventListener('resize', debounce(resize, 200));
-
-    // Only animate while the hero is on screen.
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) { e.isIntersecting ? start() : stop(); });
-      }, { threshold: 0.01 }).observe(field);
-    } else {
-      start();
-    }
-  }
+  /* The binary "10101" backdrop is its own module (binary-matrix.js),
+     loaded before this file and auto-initialising on [data-binary]. */
 
   function debounce(fn, ms) {
     var t; return function () { clearTimeout(t); t = setTimeout(fn, ms); };
   }
 
-  document.querySelectorAll('.binary-field').forEach(initBinary);
+  /* ---- Reveal-on-scroll -------------------------------------- */
+  (function () {
+    var els = document.querySelectorAll('[data-reveal]');
+    if (!els.length) return;
+    if (!('IntersectionObserver' in window) || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+      els.forEach(function (el) { el.classList.add('is-in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    els.forEach(function (el) { io.observe(el); });
+  })();
+
+  /* ---- Countdown timers (promo ribbon / summer deadline) ----- */
+  document.querySelectorAll('[data-countdown]').forEach(function (el) {
+    var end = new Date(el.getAttribute('data-countdown')).getTime();
+    if (isNaN(end)) return;
+    function tick() {
+      var diff = end - Date.now();
+      if (diff <= 0) { el.textContent = 'Closed'; return; }
+      var d = Math.floor(diff / 86400000),
+          h = Math.floor(diff % 86400000 / 3600000),
+          m = Math.floor(diff % 3600000 / 60000),
+          s = Math.floor(diff % 60000 / 1000);
+      el.innerHTML = (d ? '<b>' + d + '</b>d ' : '') + '<b>' + h + '</b>h <b>' + m + '</b>m <b>' + s + '</b>s';
+      requestAnimationFrame(function () {});
+    }
+    tick();
+    setInterval(tick, 1000);
+  });
 
   /* ---- Async form submit (registration / contact) ------------ */
   document.querySelectorAll('form[data-async]').forEach(function (form) {
@@ -153,6 +120,48 @@
       box.textContent = (body && body.message) || 'Please check the highlighted fields.';
     }
   }
+
+  /* ---- Checkout: live discount quote ------------------------- */
+  (function () {
+    var cfgEl = document.getElementById('ck-cfg');
+    var applyBtn = document.getElementById('ck-apply');
+    if (!cfgEl || !applyBtn) return;
+    var cfg = {};
+    try { cfg = JSON.parse(cfgEl.textContent); } catch (e) { return; }
+    var codeEl = document.getElementById('ck-code');
+    var msgEl = document.getElementById('ck-msg');
+    var fmt = function (n) { return cfg.sym + Number(n).toLocaleString(); };
+
+    applyBtn.addEventListener('click', function () {
+      var code = (codeEl.value || '').trim();
+      if (!code) { msgEl.textContent = 'Enter a code first.'; return; }
+      applyBtn.disabled = true; applyBtn.textContent = '…';
+      fetch(cfg.quote, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': cfg.csrf },
+        body: new URLSearchParams({ code: code, _csrf: cfg.csrf })
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var discRow = document.getElementById('ck-disc-row');
+        if (j.ok && j.discount > 0) {
+          document.getElementById('ck-disc').textContent = '−' + fmt(j.discount);
+          document.getElementById('ck-disc-label').textContent = j.label ? '· ' + j.label : '';
+          document.getElementById('ck-total').textContent = fmt(j.total);
+          discRow.style.display = 'flex';
+          msgEl.style.color = 'var(--success)';
+          msgEl.textContent = 'Code applied — new total shown above.';
+        } else {
+          discRow.style.display = 'none';
+          document.getElementById('ck-total').textContent = fmt(j.base);
+          msgEl.style.color = 'var(--red)';
+          msgEl.textContent = j.message || 'That code could not be applied.';
+        }
+      })
+      .catch(function () { msgEl.textContent = 'Could not check that code right now.'; })
+      .finally(function () { applyBtn.disabled = false; applyBtn.textContent = 'Apply'; });
+    });
+  })();
 
   function renderSuccess(form, body) {
     var target = form.querySelector('[data-success]') || form;

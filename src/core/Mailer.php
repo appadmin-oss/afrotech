@@ -27,15 +27,15 @@ class Mailer {
             return false;
         }
 
-        $phpmailer = AFT_ROOT . '/vendor/phpmailer/src/PHPMailer.php';
-        if (!is_file($phpmailer)) {
+        // PHPMailer ships vendored (committed) so cPanel needs no build step.
+        $autoload = AFT_ROOT . '/vendor/autoload.php';
+        if (is_file($autoload)) {
+            require_once $autoload;
+        }
+        if (!class_exists(\PHPMailer\PHPMailer\PHPMailer::class)) {
             self::log("[no-vendor] {$subject} -> {$to}");
             return false;
         }
-
-        require_once AFT_ROOT . '/vendor/phpmailer/src/Exception.php';
-        require_once AFT_ROOT . '/vendor/phpmailer/src/PHPMailer.php';
-        require_once AFT_ROOT . '/vendor/phpmailer/src/SMTP.php';
 
         try {
             $mail = new PHPMailer\PHPMailer\PHPMailer(true);

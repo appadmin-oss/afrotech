@@ -6,14 +6,18 @@ $nav = [
     ['/admin',          'Dashboard',       'dashboard.view'],
   ]],
   ['Summer school', [
-    ['/admin/summer',   'Registrations',   'registrations.view'],
+    ['/admin/summer',     'Registrations',   'registrations.view'],
+    ['/admin/payments',   'Payments',        'payments.view'],
+    ['/admin/discounts',  'Discount codes',  'discounts.manage'],
   ]],
   ['Academy', [
     ['/admin/courses',  'Courses',         'courses.view'],
     ['/admin/students', 'Students',        'students.view'],
     ['/admin/content',  'Landing content', 'content.manage'],
+    ['/admin/promotions','Promotions',     'promotions.manage'],
   ]],
-  ['Access control', [
+  ['Configuration', [
+    ['/admin/settings', 'Settings',        'settings.manage'],
     ['/admin/users',    'Operators',       'users.view'],
   ]],
 ];

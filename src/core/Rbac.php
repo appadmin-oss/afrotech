@@ -41,9 +41,12 @@ class Rbac {
         'courses.view'        => 'View courses',
         'courses.manage'      => 'Create / edit / publish courses',
         'content.manage'      => 'Edit landing-page content blocks',
+        'payments.view'       => 'View the payments ledger',
+        'promotions.manage'   => 'Manage promotions & the announcement ribbon',
+        'discounts.manage'    => 'Manage discount codes',
         'users.view'          => 'View operator accounts',
         'users.manage'        => 'Create / edit / remove operators',
-        'settings.manage'     => 'Change site settings',
+        'settings.manage'     => 'Change program settings (fee, age, deadline…)',
     ];
 
     /** Role → permission grants. "*" means every permission. */
@@ -55,6 +58,9 @@ class Rbac {
             'students.view', 'students.manage',
             'courses.view', 'courses.manage',
             'content.manage',
+            'payments.view',
+            'promotions.manage', 'discounts.manage',
+            'settings.manage',
             'users.view',
         ],
         'registrar' => [
@@ -62,6 +68,8 @@ class Rbac {
             'registrations.view', 'registrations.manage',
             'students.view',
             'courses.view',
+            'payments.view',
+            'discounts.manage',
         ],
         'instructor' => [
             'dashboard.view',
@@ -72,6 +80,7 @@ class Rbac {
         'viewer' => [
             'dashboard.view',
             'registrations.view', 'students.view', 'courses.view', 'users.view',
+            'payments.view',
         ],
     ];
 

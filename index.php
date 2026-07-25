@@ -13,6 +13,16 @@ declare(strict_types=1);
 define('AFT_ROOT', __DIR__);
 define('AFT_START', microtime(true));
 
+// Local dev only: when run via `php -S host:port index.php`, let the built-in
+// server serve real static files (assets) directly instead of routing them
+// through the front controller. On Apache/cPanel this block never runs
+// (.htaccess serves statics before PHP).
+if (PHP_SAPI === 'cli-server') {
+    $__path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+    $__file = AFT_ROOT . '/' . ltrim($__path, '/');
+    if ($__path !== '/' && is_file($__file)) return false;
+}
+
 // Hardened session cookie: HttpOnly keeps it out of JS reach (an XSS can't
 // lift it); SameSite=Lax blocks cross-site subrequests while surviving
 // top-level navigation; Secure is set only on HTTPS; strict-mode makes PHP
@@ -40,6 +50,7 @@ require AFT_ROOT . '/src/core/View.php';
 require AFT_ROOT . '/src/core/Validator.php';
 require AFT_ROOT . '/src/core/Ids.php';
 require AFT_ROOT . '/src/core/Mailer.php';
+require AFT_ROOT . '/src/core/Paystack.php';
 require AFT_ROOT . '/src/core/Security.php';
 Security::sendHeaders();
 require AFT_ROOT . '/src/core/Controller.php';

@@ -145,4 +145,75 @@ CREATE TABLE IF NOT EXISTS `inquiries` (
     KEY `inquiries_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ----- Settings (key/value, typed by the Setting model) -----
+-- Everything the flier hard-codes lives here so it's editable in admin:
+-- program fee, currency, age label, registration deadline, cohort dates,
+-- campuses, payment toggle, etc.
+CREATE TABLE IF NOT EXISTS `settings` (
+    `id`         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `key_name`   VARCHAR(80) NOT NULL,
+    `value_text` TEXT,
+    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `settings_key` (`key_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----- Promotions (announcement ribbon / countdown banner) ---
+CREATE TABLE IF NOT EXISTS `promotions` (
+    `id`         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `title`      VARCHAR(200) NOT NULL,
+    `body`       VARCHAR(400) DEFAULT NULL,
+    `badge`      VARCHAR(60)  DEFAULT NULL,
+    `cta_label`  VARCHAR(80)  DEFAULT NULL,
+    `cta_href`   VARCHAR(300) DEFAULT NULL,
+    `tone`       ENUM('red','ink','gold') NOT NULL DEFAULT 'red',
+    `show_countdown` TINYINT(1) NOT NULL DEFAULT 0,
+    `starts_at`  DATETIME NULL DEFAULT NULL,
+    `ends_at`    DATETIME NULL DEFAULT NULL,
+    `sort`       INT NOT NULL DEFAULT 0,
+    `status`     ENUM('active','paused') NOT NULL DEFAULT 'active',
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY `promotions_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----- Discount codes ----------------------------------------
+CREATE TABLE IF NOT EXISTS `discount_codes` (
+    `id`          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `code`        VARCHAR(40)  NOT NULL,
+    `description` VARCHAR(200) DEFAULT NULL,
+    `type`        ENUM('percent','fixed') NOT NULL DEFAULT 'percent',
+    `value`       INT NOT NULL DEFAULT 0,          -- percent (0..100) or naira
+    `min_amount`  INT NOT NULL DEFAULT 0,
+    `max_uses`    INT NULL DEFAULT NULL,           -- NULL = unlimited
+    `used_count`  INT NOT NULL DEFAULT 0,
+    `starts_at`   DATETIME NULL DEFAULT NULL,
+    `ends_at`     DATETIME NULL DEFAULT NULL,
+    `status`      ENUM('active','paused') NOT NULL DEFAULT 'active',
+    `created_at`  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY `discount_code` (`code`),
+    KEY `discount_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----- Payments ----------------------------------------------
+CREATE TABLE IF NOT EXISTS `payments` (
+    `id`                INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `reference`         VARCHAR(60)  NOT NULL,
+    `registration_id`   INT UNSIGNED NULL DEFAULT NULL,
+    `email`             VARCHAR(160) NOT NULL,
+    `provider`          ENUM('paystack','manual') NOT NULL DEFAULT 'paystack',
+    `currency`          VARCHAR(8)   NOT NULL DEFAULT 'NGN',
+    `base_amount`       INT NOT NULL DEFAULT 0,     -- naira before discount
+    `discount_code`     VARCHAR(40)  DEFAULT NULL,
+    `discount_amount`   INT NOT NULL DEFAULT 0,     -- naira discounted
+    `amount`            INT NOT NULL DEFAULT 0,     -- naira actually charged
+    `status`            ENUM('pending','succeeded','failed','abandoned') NOT NULL DEFAULT 'pending',
+    `provider_reference` VARCHAR(120) DEFAULT NULL,
+    `provider_response` TEXT,
+    `verified_at`       DATETIME NULL DEFAULT NULL,
+    `created_at`        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `payments_reference` (`reference`),
+    KEY `payments_reg`    (`registration_id`),
+    KEY `payments_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;

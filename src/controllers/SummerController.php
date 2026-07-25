@@ -4,7 +4,7 @@ class SummerController extends Controller {
     public function index(): void {
         $this->view('pages/summer', [
             'title'       => 'Summer School Registration · ' . AFT_NAME,
-            'description' => 'Register your child for the Afrotech Academy Summer School. ' . AFT_SUMMER_FEE . ', ' . AFT_SUMMER_AGE . '. Cybersecurity, AI, coding, design & more.',
+            'description' => 'Register your child for the Afrotech Academy Summer School. ' . Setting::money(Setting::fee()) . ', ' . Setting::get('age_label') . '. Cybersecurity, AI, coding, design & more.',
             'tracks'      => Track::all(),
             'content'     => ContentBlock::all(),
             'bodyClass'   => 'page-summer',
@@ -70,19 +70,14 @@ class SummerController extends Controller {
             $data['email']);
 
         $msg = "We've received " . $data['student_name'] . "'s registration for the "
-             . ($data['track_name'] ?? 'Summer School') . ". Save your reference code — "
-             . "we'll email you next steps and payment details.";
+             . ($data['track_name'] ?? 'Summer School') . ". Continue to secure the place.";
+        $payUrl = url('/summer/pay/' . $code);
 
         if ($this->wantsJson()) {
-            $this->json(['ok' => true, 'reg_code' => $code, 'title' => "You're registered! 🎉", 'message' => $msg]);
+            // The async form follows `redirect` straight into checkout.
+            $this->json(['ok' => true, 'reg_code' => $code, 'redirect' => $payUrl,
+                'title' => "You're registered! 🎉", 'message' => $msg]);
         }
-        flash_set('summer_code', $code);
-        flash_set('summer_msg', $msg);
-        $this->view('pages/summer-done', [
-            'title'   => 'Registration received · ' . AFT_NAME,
-            'code'    => $code,
-            'message' => $msg,
-            'data'    => $data,
-        ], 'main');
+        $this->redirect('/summer/pay/' . $code);
     }
 }

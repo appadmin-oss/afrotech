@@ -53,6 +53,33 @@ REPLACE INTO `content_blocks` (key_name, value_text) VALUES
 ('hero_subtitle', 'This summer school is your opportunity to build the skills that matter most for the future. Explore leadership, digital and tech skills, content creation, business, and financial literacy through engaging, practical learning designed to inspire confidence, creativity, and success.'),
 ('summer_intro',  'Six future-ready tracks. One transformative summer. Register your child today for the Afrotech Academy Summer School.');
 
+-- ------- Settings (nothing hard-coded — all editable in admin) -------
+REPLACE INTO `settings` (key_name, value_text) VALUES
+('program_name',          'Afrotech Academy Summer School'),
+('currency_symbol',       '₦'),
+('currency_code',         'NGN'),
+('summer_fee',            '40000'),
+('min_age',               '7'),
+('age_label',             'Age 7+'),
+('cohort_label',          'Summer 2026'),
+('cohort_start',          '2026-08-04'),
+('registration_deadline', '2026-07-31 23:59:00'),
+('seats_total',           '120'),
+('payment_enabled',       '1'),
+('payment_provider',      'paystack'),
+('bank_transfer_details', 'Afrostrength Limited · GTBank · 0123456789 (quote your reference code)'),
+('whatsapp_phone',        '+234 810 019 1456'),
+('contact_email',         'reachus@afrostrength.com');
+
+-- ------- Launch promotion (ribbon + countdown) -----------------------
+REPLACE INTO `promotions` (id, title, body, badge, cta_label, cta_href, tone, show_countdown, ends_at, sort, status) VALUES
+(1, 'Summer School registration is open', 'Save your child''s place before the deadline — limited seats per campus.', 'NEW', 'Register now', '/summer', 'red', 1, '2026-07-31 23:59:00', 1, 'active');
+
+-- ------- Sample discount code ----------------------------------------
+REPLACE INTO `discount_codes` (id, code, description, type, value, max_uses, status, ends_at) VALUES
+(1, 'EARLYBIRD', 'Early-bird 15% off the summer program', 'percent', 15, 200, 'active', '2026-07-15 23:59:00'),
+(2, 'SIBLING', 'Sibling discount — ₦5,000 off', 'fixed', 5000, NULL, 'active', NULL);
+
 -- ------- First operator (super admin) --------------------------------
 -- Password below is the bcrypt hash of "ChangeMe!2026". CHANGE IT immediately
 -- after first login, or (better) create your own via:

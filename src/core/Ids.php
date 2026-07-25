@@ -46,6 +46,11 @@ class Ids {
         return sprintf('AFT-CERT-%s-%s-%s', date('Y'), self::token(4), self::token(4));
     }
 
+    /** Payment reference — passed to the gateway; must be URL/DB safe. */
+    public static function payment(): string {
+        return sprintf('AFT-PAY-%s-%s', date('ymd'), self::token(6));
+    }
+
     /**
      * Mint an id and guarantee it's unique against an existing column,
      * retrying on the (astronomically unlikely) collision. Falls back to the

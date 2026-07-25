@@ -18,7 +18,7 @@
 
     <div class="flex mt-6" style="gap:12px">
       <a class="btn btn--primary btn--lg" href="<?= e(url('/summer')) ?>">Register for <?= e($track['name']) ?></a>
-      <span class="pill pill--red"><?= e(AFT_SUMMER_FEE) ?> · <?= e(AFT_SUMMER_AGE) ?></span>
+      <span class="pill pill--red"><?= e(Setting::money(Setting::fee())) ?> · <?= e(Setting::get('age_label')) ?></span>
     </div>
   </div>
 </section>

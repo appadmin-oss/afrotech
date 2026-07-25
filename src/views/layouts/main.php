@@ -20,9 +20,11 @@
 <link rel="stylesheet" href="<?= e(asset_v('css/app.css')) ?>">
 </head>
 <body class="<?= e($bodyClass) ?>">
+<?php partial('ribbon'); ?>
 <?php partial('nav'); ?>
 <main id="main"><?= $bodyContent ?></main>
 <?php partial('footer'); ?>
+<script src="<?= e(asset_v('js/binary-matrix.js')) ?>" defer></script>
 <script src="<?= e(asset_v('js/app.js')) ?>" defer></script>
 </body>
 </html>

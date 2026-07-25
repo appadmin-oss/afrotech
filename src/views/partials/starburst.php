@@ -1,5 +1,9 @@
-<?php /** The flier's spiky "PROGRAM FEE" badge. */ ?>
-<div class="starburst" role="img" aria-label="Program fee <?= e(AFT_SUMMER_FEE) ?>, <?= e(AFT_SUMMER_AGE) ?>">
+<?php
+/** The flier's spiky "PROGRAM FEE" badge — figures come from Settings. */
+$fee = Setting::money(Setting::fee());
+$age = Setting::get('age_label', 'Age 7+');
+?>
+<div class="starburst" role="img" aria-label="Program fee <?= e($fee) ?>, <?= e($age) ?>">
   <svg viewBox="0 0 200 200" aria-hidden="true">
     <?php
       $spikes = 24; $cx = 100; $cy = 100; $rOuter = 98; $rInner = 80; $pts = [];
@@ -14,7 +18,7 @@
   </svg>
   <div class="starburst__body">
     <div class="starburst__label">Program Fee</div>
-    <div class="starburst__fee"><?= e(AFT_SUMMER_FEE) ?></div>
-    <div class="starburst__age"><?= e(AFT_SUMMER_AGE) ?></div>
+    <div class="starburst__fee"><?= e($fee) ?></div>
+    <div class="starburst__age"><?= e($age) ?></div>
   </div>
 </div>

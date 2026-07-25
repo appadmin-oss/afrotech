@@ -70,6 +70,22 @@ class SummerRegistration {
         return Database::one("SELECT * FROM summer_registrations WHERE id = ?", [$id]);
     }
 
+    public static function findByCode(string $code): ?array {
+        $code = strtoupper(trim($code));
+        if (!Database::available()) {
+            // Offline/demo soft-fallback so the checkout flow is previewable
+            // before the DB is configured. Never reached in production (DB up).
+            return [
+                'id' => 0, 'reg_code' => $code, 'student_name' => 'Your child',
+                'student_age' => 10, 'guardian_name' => '', 'email' => '',
+                'phone' => '', 'track_slug' => null, 'track_name' => 'Summer School',
+                'location_pref' => null, 'experience' => 'none', 'notes' => null,
+                'fee_naira' => Setting::fee(), 'payment_status' => 'unpaid', 'status' => 'pending',
+            ];
+        }
+        return Database::one("SELECT * FROM summer_registrations WHERE reg_code = ?", [$code]);
+    }
+
     public static function setStatus(int $id, string $status, int $adminId = 0): void {
         if (!Database::available()) return;
         if (!in_array($status, ['pending','confirmed','waitlisted','cancelled'], true)) return;

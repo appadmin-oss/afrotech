@@ -86,12 +86,36 @@ row and use `create-admin.php`).
 | Var | Purpose |
 |-----|---------|
 | `DB_HOST` `DB_PORT` `DB_NAME` `DB_USER` `DB_PASS` | MySQL connection |
-| `MAIL_ENABLED` `MAIL_HOST` `MAIL_PORT` `MAIL_USERNAME` `MAIL_PASSWORD` `MAIL_FROM` `MAIL_INBOX` | SMTP (via PHPMailer in `vendor/`) |
+| `MAIL_ENABLED` `MAIL_HOST` `MAIL_PORT` `MAIL_USERNAME` `MAIL_PASSWORD` `MAIL_FROM` `MAIL_INBOX` | SMTP (via PHPMailer, vendored) |
+| `PAYMENT_PROVIDER` | `paystack` (default) |
+| `PAYSTACK_SECRET_KEY` `PAYSTACK_PUBLIC_KEY` `PAYSTACK_WEBHOOK_SECRET` | Paystack keys — when absent, checkout falls back to bank transfer |
 | `AFT_URL` | Canonical base URL (auto-detected if unset) |
 | `AFT_DEBUG` | `1` shows full errors while developing |
 
-Email uses PHPMailer if present at `vendor/phpmailer/`; otherwise it soft-fails to
-`storage/mail.log` so nothing breaks during setup.
+**Email** uses **PHPMailer** (committed under `vendor/`, so no build step on
+cPanel); it soft-fails to `storage/mail.log` when SMTP creds are absent. The SMTP
+approach mirrors MAM Academy's working mailer.
+
+**Payments** use **Paystack** (server-side initialize → hosted checkout →
+callback verify + HMAC webhook, adapted from MAM Academy). Set the keys above to
+go live; without them the checkout shows bank-transfer instructions so the flow
+still works end-to-end. Point your Paystack webhook at `/webhooks/paystack`.
+
+### Nothing is hard-coded
+Fee, currency, age, registration deadline, cohort dates, seats, campuses, and the
+payment toggle live in the **`settings`** table and are edited at `/admin/settings`
+(with built-in defaults as a fallback). **Promotions** (the announcement ribbon +
+live countdown) and **discount codes** (percent or fixed, with usage limits and
+date windows) are managed at `/admin/promotions` and `/admin/discounts` and applied
+at checkout.
+
+### Binary "10101" effect
+The flier's digital backdrop is a self-contained, CSP-safe engine
+(`assets/js/binary-matrix.js`): DPR-aware canvas, parallax depth, glowing heads,
+pointer-reactive brightening, theme-aware colour, periodic **word-reveals** that
+spell the brand and track names inside the stream, and a motion-free static frame
+under `prefers-reduced-motion`. Drop it on any element with
+`data-binary data-words="…"`.
 
 ---
 
