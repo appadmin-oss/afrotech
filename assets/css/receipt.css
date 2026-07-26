@@ -1,0 +1,121 @@
+/* ================================================================
+   Afrotech Academy — payment receipt.
+   Reads as a document rather than a web page, because that is what it
+   is used as: forwarded, printed, and handed to a school or sponsor.
+   Screen styles first; the print block strips the page down to the
+   document itself.
+================================================================== */
+
+.receipt-doc {
+  background: var(--card);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  padding: clamp(24px, 4vw, 44px);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+.receipt-doc__head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--sp-4); padding-bottom: var(--sp-4);
+  border-bottom: 2px solid var(--ink);
+}
+.receipt-doc__brand {
+  font-family: var(--ff-display); font-weight: 700; font-size: var(--fs-h3);
+  letter-spacing: -0.02em; color: var(--ink);
+}
+.receipt-doc__brand span { color: var(--red); }
+.receipt-doc__org {
+  font-family: var(--ff-mono); font-size: var(--fs-xs); color: var(--txt-3);
+  letter-spacing: .06em; margin-top: 2px;
+}
+
+/* The one piece of theatre: a stamp, because a receipt that doesn't look
+   settled gets emailed back asking whether it went through. */
+.receipt-doc__stamp {
+  font-family: var(--ff-display); font-weight: 700; font-size: var(--fs-md);
+  text-transform: uppercase; letter-spacing: .12em;
+  color: var(--red); border: 2px solid var(--red); border-radius: var(--r-sm);
+  padding: .3rem .8rem; transform: rotate(-4deg); flex: none;
+  background: color-mix(in srgb, var(--red) 7%, transparent);
+}
+
+.receipt-doc__title {
+  font-family: var(--ff-display); font-size: var(--fs-h2);
+  margin-top: var(--sp-5); color: var(--ink);
+}
+.receipt-doc__lede {
+  color: var(--txt-2); font-size: var(--fs-md); line-height: 1.65;
+  margin-top: var(--sp-2); max-width: 52ch;
+}
+
+.receipt-doc__meta {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4);
+  margin: var(--sp-6) 0; padding: var(--sp-5) 0;
+  border-block: 1px solid var(--hair-2);
+}
+.receipt-doc__meta dt {
+  font-family: var(--ff-mono); font-size: 10.5px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--txt-3);
+}
+.receipt-doc__meta dd {
+  margin: 4px 0 0; font-size: var(--fs-md); font-weight: 600; color: var(--txt);
+  word-break: break-word;
+}
+
+.receipt-doc__lines { width: 100%; border-collapse: collapse; }
+.receipt-doc__lines th,
+.receipt-doc__lines td { padding: .7rem 0; text-align: left; font-weight: 400; }
+.receipt-doc__lines tbody th { color: var(--txt-2); font-size: var(--fs-md); }
+.receipt-doc__lines td {
+  text-align: right; font-family: var(--ff-mono); font-size: var(--fs-md);
+  color: var(--txt); white-space: nowrap;
+}
+.receipt-doc__lines tbody tr + tr th,
+.receipt-doc__lines tbody tr + tr td { border-top: 1px solid var(--hair-2); }
+.receipt-doc__discount th, .receipt-doc__discount td { color: var(--red); }
+.receipt-doc__lines tfoot th,
+.receipt-doc__lines tfoot td {
+  border-top: 2px solid var(--ink); padding-top: var(--sp-4);
+  font-family: var(--ff-display); font-weight: 700; font-size: var(--fs-h3); color: var(--ink);
+}
+.receipt-doc__lines tfoot td { color: var(--red); }
+
+.receipt-doc__foot {
+  margin-top: var(--sp-6); padding-top: var(--sp-4);
+  border-top: 1px solid var(--hair-2);
+  font-size: var(--fs-xs); color: var(--txt-3); line-height: 1.7;
+}
+.receipt-doc__foot a { color: var(--red); }
+
+.receipt-actions {
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-top: var(--sp-5); justify-content: center;
+}
+
+@media (max-width: 560px) {
+  .receipt-doc__meta { grid-template-columns: 1fr; gap: var(--sp-3); }
+}
+
+/* ---- Print: just the document -------------------------------- */
+@media print {
+  /* Force the light palette — a dark-theme receipt wastes a cartridge and
+     reads badly on paper. */
+  :root, :root[data-theme="dark"] {
+    --paper: #fff; --card: #fff; --card-2: #fff;
+    --txt: #000; --txt-2: #222; --txt-3: #555; --ink: #000;
+    --hair: rgba(0,0,0,.2); --hair-2: rgba(0,0,0,.12);
+  }
+  .nav, .ribbon, .footer, .receipt-actions, .binary-field { display: none !important; }
+  body { background: #fff; }
+  .section--tight { padding: 0; }
+  .receipt-doc {
+    border: 0; box-shadow: none; padding: 0; border-radius: 0;
+    break-inside: avoid;
+  }
+  .receipt-doc__stamp { color: #000; border-color: #000; background: none; }
+  .receipt-doc__brand span, .receipt-doc__lines tfoot td,
+  .receipt-doc__discount th, .receipt-doc__discount td { color: #000; }
+  a[href]::after { content: ""; }   /* no URL footnotes on a receipt */
+  @page { margin: 16mm; }
+}

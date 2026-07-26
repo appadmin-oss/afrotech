@@ -49,7 +49,27 @@ class SummerController extends \Controller {
     public function updatePayment(string $id): void {
         \Csrf::require();
         \Rbac::require('registrations.manage');
-        \SummerRegistration::setPayment((int)$id, (string)$this->input('payment_status', 'unpaid'));
+
+        $status = (string)$this->input('payment_status', 'unpaid');
+        $reg    = \SummerRegistration::find((int)$id);
+
+        // Marking a registration paid used to update this row and nothing else:
+        // the payment stayed pending in the ledger and the family never got a
+        // receipt. If there is a payment waiting on this registration, confirm
+        // it properly instead — same path, same receipt, same audit trail.
+        if ($status === 'paid' && $reg && \Rbac::can('payments.confirm')) {
+            $pay = \Payment::forRegistration((int)$reg['id']);
+            if ($pay && $pay['status'] === 'pending') {
+                $res = (new \PaymentController())->confirmManually(
+                    $pay, $reg, \Auth::id(), 'Marked paid from the registration record'
+                );
+                flash_set($res['ok'] ? 'summer_msg' : 'summer_err', $res['message']);
+                $this->redirect('/admin/summer/' . (int)$id);
+                return;
+            }
+        }
+
+        \SummerRegistration::setPayment((int)$id, $status);
         $this->redirect('/admin/summer/' . (int)$id);
     }
 

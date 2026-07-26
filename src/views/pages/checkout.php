@@ -4,27 +4,9 @@ $sym = Setting::get('currency_symbol', '₦');
 $err = flash_pop('checkout_err');
 $baseFee = $baseFee ?? $fee;
 $addons  = $addons ?? 0;
-// The add-ons the family chose on the registration form, itemised back to them.
-$addonRows = [];
-if ($addons > 0) {
-    $def = FormDef::findVersion(FormDef::SUMMER, (int)($reg['form_version'] ?? 1)) ?? FormDef::live();
-    $resolved = FormEngine::resolve($def['fields'] ?? []);
-    $answers  = SummerRegistration::answers($reg);
-    foreach ($resolved as $f) {
-        if (!array_key_exists($f['key'], $answers)) continue;
-        $v = $answers[$f['key']];
-        $picked = is_array($v) ? $v : [$v];
-        if (!empty($f['price']) && !in_array((string)($picked[0] ?? ''), ['', 'no'], true)) {
-            $addonRows[] = [$f['label'], (int)$f['price']];
-        }
-        foreach ($f['options'] ?? [] as $o) {
-            if (empty($o['price'])) continue;
-            if (in_array((string)$o['value'], array_map('strval', $picked), true)) {
-                $addonRows[] = [$o['label'], (int)$o['price']];
-            }
-        }
-    }
-}
+// The add-ons the family chose, itemised back to them — same helper the receipt
+// uses, so what they agree to pay and what they are receipted for always match.
+$addonRows = PaymentController::addonBreakdown($reg);
 ?>
 <section class="section">
   <div class="wrap" style="max-width:560px">

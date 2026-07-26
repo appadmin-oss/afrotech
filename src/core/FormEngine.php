@@ -234,6 +234,11 @@ class FormEngine {
             // ---- pricing ------------------------------------------------
             if (!$isLayout && self::isNum($f['price'] ?? null) && (int)$f['price'] !== 0) {
                 $clean['price'] = (int)$f['price'];
+                // A question makes a poor line item — "Do you need campus shuttle
+                // pick-up? …₦5,000" on a receipt reads as a typo. Operators can
+                // name the thing being sold separately from the way they ask about it.
+                $pl = trim((string)($f['priceLabel'] ?? ''));
+                if ($pl !== '') $clean['priceLabel'] = mb_substr($pl, 0, 120);
             }
 
             // ---- logic --------------------------------------------------

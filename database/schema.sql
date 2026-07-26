@@ -236,6 +236,13 @@ CREATE TABLE IF NOT EXISTS `payments` (
     `provider_reference` VARCHAR(120) DEFAULT NULL,
     `provider_response` TEXT,
     `verified_at`       DATETIME NULL DEFAULT NULL,
+    -- A payment can be confirmed by the browser callback, the webhook, or an
+    -- operator clearing a bank transfer — and two can land at once. These
+    -- record which path won and keep the receipt email a once-only side effect.
+    `confirmed_via`     ENUM('callback','webhook','operator','manual') NULL DEFAULT NULL,
+    `confirmed_by`      INT UNSIGNED NULL DEFAULT NULL,
+    `receipt_sent_at`   DATETIME NULL DEFAULT NULL,
+    `confirmation_note` VARCHAR(300) NULL DEFAULT NULL,
     `created_at`        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY `payments_reference` (`reference`),

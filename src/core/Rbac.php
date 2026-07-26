@@ -44,6 +44,7 @@ class Rbac {
         'forms.view'          => 'View the registration form builder',
         'forms.manage'        => 'Edit and publish the public registration form',
         'payments.view'       => 'View the payments ledger',
+        'payments.confirm'    => 'Confirm a bank transfer by hand (sends the receipt)',
         'promotions.manage'   => 'Manage promotions & the announcement ribbon',
         'discounts.manage'    => 'Manage discount codes',
         'users.view'          => 'View operator accounts',
@@ -63,7 +64,7 @@ class Rbac {
             // Editing the live public form is an admin-and-above capability;
             // a registrar can read it to understand what a submission means.
             'forms.view', 'forms.manage',
-            'payments.view',
+            'payments.view', 'payments.confirm',
             'promotions.manage', 'discounts.manage',
             'settings.manage',
             'users.view',
@@ -74,7 +75,7 @@ class Rbac {
             'students.view',
             'courses.view',
             'forms.view',
-            'payments.view',
+            'payments.view', 'payments.confirm',
             'discounts.manage',
         ],
         'instructor' => [

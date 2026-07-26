@@ -13,6 +13,13 @@ $addons = max(0, (int)($r['addons_naira'] ?? 0));
   </div>
 </div>
 
+<?php if ($msg = flash_pop('summer_msg')): ?>
+  <div class="alert alert--ok" style="margin-bottom:var(--sp-5)"><?= e($msg) ?></div>
+<?php endif; ?>
+<?php if ($msgErr = flash_pop('summer_err')): ?>
+  <div class="alert alert--err" style="margin-bottom:var(--sp-5)"><?= e($msgErr) ?></div>
+<?php endif; ?>
+
 <div class="grid-2" style="align-items:start">
   <div class="panel">
     <h2>Details</h2>
@@ -29,6 +36,20 @@ $addons = max(0, (int)($r['addons_naira'] ?? 0));
           <?php if ($addons > 0): ?><span class="muted">(includes <?= e(naira($addons)) ?> in add-ons)</span><?php endif; ?>
         </td></tr>
         <tr><th>Registered</th><td><?= e(datetime_pretty($r['created_at'])) ?></td></tr>
+        <?php $pay = Payment::forRegistration((int)$r['id']); ?>
+        <?php if ($pay): ?>
+        <tr>
+          <th>Payment</th>
+          <td>
+            <span class="chip chip--<?= $pay['status'] === 'succeeded' ? 'paid' : ($pay['status'] === 'pending' ? 'pending' : 'cancelled') ?>"><?= e($pay['status']) ?></span>
+            <?php if ($pay['status'] === 'succeeded'): ?>
+              <a class="mono" style="font-size:var(--fs-xs)" href="<?= e(url('/summer/receipt/' . rawurlencode($pay['reference']))) ?>" target="_blank" rel="noopener">view receipt ↗</a>
+            <?php else: ?>
+              <span class="mono muted" style="font-size:var(--fs-xs)"><?= e($pay['reference']) ?></span>
+            <?php endif; ?>
+          </td>
+        </tr>
+        <?php endif; ?>
         <tr><th>Form version</th><td class="mono">v<?= (int)($formVersion ?? 1) ?></td></tr>
       </tbody>
     </table>

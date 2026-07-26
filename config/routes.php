@@ -15,6 +15,8 @@ $router->get('/summer/track/{slug}',  [SummerController::class,   'track']);
 // ---- Checkout / payment (order matters: static before {code}) -----
 $router->post('/api/checkout/quote',           [PaymentController::class,  'quote']);
 $router->get('/summer/pay/callback',           [PaymentController::class,  'callback']);
+// The confirmation itself — stable, re-visitable, printable.
+$router->get('/summer/receipt/{ref}',          [PaymentController::class,  'receipt']);
 $router->get('/summer/pay/{code}/manual',      [PaymentController::class,  'manual']);
 $router->get('/summer/pay/{code}',             [PaymentController::class,  'checkout']);
 $router->post('/summer/pay/{code}',            [PaymentController::class,  'start']);
@@ -95,8 +97,9 @@ $router->get('/admin/discounts/{id}/edit',  ['Admin\DiscountsController', 'edit'
 $router->post('/admin/discounts/save',      ['Admin\DiscountsController', 'save']);
 $router->post('/admin/discounts/{id}/delete',['Admin\DiscountsController','delete']);
 
-// Payments (read-only ledger)
-$router->get('/admin/payments',           ['Admin\PaymentsController', 'index']);
+// Payments ledger + hand-confirmation of bank transfers
+$router->get('/admin/payments',            ['Admin\PaymentsController', 'index']);
+$router->post('/admin/payments/{ref}/confirm', ['Admin\PaymentsController', 'confirm']);
 
 // Operators (RBAC user management)
 $router->get('/admin/users',              ['Admin\UsersController', 'index']);

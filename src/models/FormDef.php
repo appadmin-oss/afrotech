@@ -229,7 +229,7 @@ class FormDef {
             // needed: a negative test alone ("not Online") is also true of a
             // blank, which would offer the shuttle before a campus is picked.
             ['key' => 'transport', 'type' => 'yesno', 'label' => 'Do you need campus shuttle pick-up?',
-             'price' => 5000,
+             'price' => 5000, 'priceLabel' => 'Campus shuttle pick-up',
              'help' => 'Adds ₦5,000 to the fee — return trip, weekdays.',
              'logic' => ['action' => 'show', 'match' => 'all', 'rules' => [
                  ['field' => 'location_pref', 'op' => 'not_empty'],

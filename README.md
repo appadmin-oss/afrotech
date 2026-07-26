@@ -23,6 +23,7 @@ stack and conventions as the Afrostrength site.
 | **Learner area** | `/login`, `/dashboard` | Student sign-in and "My Learning" with per-course progress. |
 | **RBAC admin** | `/admin/**` | Full operator console with role-based access control. |
 | **Registration API** | `POST /api/summer/register` | JSON or form; CSRF-guarded; returns the reference code. |
+| **Receipt** | `/summer/receipt/{reference}` | Stable, printable payment receipt — itemised, re-visitable, emailed to the family. |
 
 ### The six tracks (from the flier)
 Cybersecurity · Google Workspace · AI & Automations · Coding · Graphics Design · Digital Marketing.
@@ -38,7 +39,7 @@ Five roles, each mapped to a set of dotted permissions in
 |------|--------|
 | **Super Admin** | Everything, including managing operators and settings. |
 | **Administrator** | Registrations, students, courses, content, and publishing the public registration form. Not operators. |
-| **Registrar** | Own the summer intake — review, confirm, export. Reads the form builder. |
+| **Registrar** | Own the summer intake — review, confirm, export. Clears bank transfers. Reads the form builder. |
 | **Instructor** | Manage courses, view enrolled students. |
 | **Viewer** | Read-only across the admin. |
 
@@ -74,9 +75,10 @@ mysql -u root -p -e "CREATE DATABASE afrotech CHARACTER SET utf8mb4"
 mysql -u root -p afrotech < database/schema.sql
 mysql -u root -p afrotech < database/seed.sql   # tracks, courses, first super admin
 
-# 2b. Existing installs only — schema.sql already contains these. Adds the
-#     form-builder tables/columns; re-running it is a no-op.
+# 2b. Existing installs only — schema.sql already contains these. Each is
+#     additive and re-runnable, so a second import is a no-op.
 mysql -u root -p afrotech < database/migrations/2026-07-form-builder.sql
+mysql -u root -p afrotech < database/migrations/2026-07-payment-confirmation.sql
 
 # 3. Create your own operator (recommended over the seeded default)
 php scripts/create-admin.php owner you@example.com 'a-strong-password' super_admin
@@ -177,6 +179,52 @@ Field keys can be mapped onto the registration record's own columns
 locked and cannot be removed. Everything else is stored as an answer. A field
 marked **sensitive** stays inside the console — never exported, never emailed.
 
+---
+
+## Payment confirmation
+
+A payment can be confirmed from three directions, and any two can arrive at
+once: the **gateway callback** the parent's browser follows, the
+**server-to-server webhook**, and an **operator** clearing a bank transfer in
+the console. All three run one path.
+
+**Confirmed once, never twice.** The guard is the write itself —
+`UPDATE … WHERE reference = ? AND status <> 'succeeded'` — so the row is the
+lock and only the caller that actually changed it runs the side effects.
+Without that, a callback and a webhook landing together send the family two
+receipts and burn two uses of a limited discount code on one sale. The receipt
+email is claimed separately (`receipt_sent_at`), so a later re-verification
+can't email again.
+
+**A charge has to actually settle the invoice.** `chargeAcceptable()` checks
+status, amount and currency. Paystack reports **minor units**, so ₦55,000 is
+`5500000` — comparing that against naira is the classic way to accept a 100×
+shortfall. Over-payment is fine; under-payment, a mismatched currency, or a
+webhook whose signature is valid but whose amount belongs to another invoice
+are all refused.
+
+**Pending is its own outcome.** If the gateway can't be reached to verify, the
+payment stays pending and the parent is told we're still checking — not that
+their payment failed, and explicitly *don't pay twice*. The webhook or an
+operator can still confirm it.
+
+**Bank transfers are first-class.** Marking a registration paid used to update
+one column: the ledger stayed pending and the family never got a receipt.
+Confirming a transfer (`/admin/payments`, or from the registration record) now
+runs the same path a card payment does — same ledger state, same receipt, same
+audit trail — under `payments.confirm`.
+
+**The receipt is a document, not a flash message.** `/summer/receipt/{reference}`
+is stable, re-visitable and printable, itemising the programme fee, each add-on
+the form priced, and any discount. Parents forward it and produce it when a
+school or sponsor asks for proof. The callback redirects there, so a refresh
+re-reads a record instead of re-verifying a charge. The academy inbox gets its
+own notification, because staffing and campus lists run off *paid* places.
+
+```bash
+php scripts/test-payment-confirmation.php
+```
+
 ### Binary "10101" effect
 The flier's digital backdrop is a self-contained, CSP-safe engine
 (`assets/js/binary-matrix.js`): DPR-aware canvas, parallax depth, glowing heads,
@@ -211,7 +259,8 @@ src/views/             layouts, pages, admin, partials, emails
 assets/                css (tokens, app, admin, form, builder),
                        js (app.js, form-logic.js, form-builder.js), images
 database/              schema.sql, seed.sql, migrations/
-scripts/               create-admin.php, test-form-engine.php
+scripts/               create-admin.php, test-form-engine.php,
+                       test-payment-confirmation.php
 ```
 
 Security baseline: hardened session cookie (HttpOnly/SameSite/Secure/strict),

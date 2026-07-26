@@ -121,6 +121,13 @@
     }
   }
 
+  /* ---- Receipt: print / save as PDF -------------------------- */
+  /* A button rather than "press Ctrl+P": most parents open the receipt on a
+     phone, where the print dialog is the route to a shareable PDF. */
+  document.querySelectorAll('[data-print]').forEach(function (btn) {
+    btn.addEventListener('click', function () { window.print(); });
+  });
+
   /* ---- Checkout: live discount quote ------------------------- */
   (function () {
     var cfgEl = document.getElementById('ck-cfg');

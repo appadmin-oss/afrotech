@@ -129,7 +129,8 @@
       if (!isLayout(f.type)) {
         o.key = f.key || keyFromLabel(f.label, f.type, i);
         ['required', 'sensitive', 'locked'].forEach(function (k) { if (f[k]) o[k] = true; });
-        ['help', 'placeholder', 'requiredMessage', 'patternMessage', 'width', 'map', 'default', 'prefill', 'pattern', 'accept']
+        ['help', 'placeholder', 'requiredMessage', 'patternMessage', 'width', 'map', 'default',
+         'prefill', 'pattern', 'accept', 'priceLabel']
           .forEach(function (k) { if (f[k]) o[k] = f[k]; });
         ['min', 'max', 'minLen', 'maxLen', 'minSelect', 'maxSelect', 'rows', 'price']
           .forEach(function (k) { if (f[k] !== '' && f[k] != null) o[k] = Number(f[k]); });
@@ -326,7 +327,12 @@
         + '</div>');
       h.push(grid([
         text('requiredMessage', 'Custom "required" message', f.requiredMessage || ''),
-        num('price', 'Flat add-on price (' + B.symbol + ')', f.price)
+        num('price', 'Flat add-on price (' + B.symbol + ')', f.price),
+        // Always rendered rather than revealed once a price exists: showing it
+        // conditionally would mean re-rendering the editor mid-keystroke, which
+        // takes the caret out of the price box.
+        text('priceLabel', 'Receipt line item', f.priceLabel || '',
+             'used when priced — e.g. "Campus shuttle pick-up"')
       ]));
     } else if (f.type !== 'step') {
       h.push(text('help', 'Supporting text', f.help || ''));
@@ -502,7 +508,9 @@
           + '<b>' + esc(f.label || key) + '</b> ' + verb
           + ' when <em>' + (g.match === 'any' ? 'any' : 'all') + '</em> of: '
           + g.rules.map(function (r) {
-              var op = (cat.operators[r.op] || {}).label || r.op;
+              // The dropdown labels carry a format hint — "is one of (a,b,c)" —
+              // which is noise once the rule is written out as a sentence.
+              var op = ((cat.operators[r.op] || {}).label || r.op).replace(/\s*\([^)]*\)\s*$/, '');
               return '<span class="fbx__maprule">' + esc(r.field) + ' ' + esc(op)
                 + ((cat.operators[r.op] || {}).needsValue ? ' “' + esc(r.value || '') + '”' : '') + '</span>';
             }).join(' · ')

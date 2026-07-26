@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="<?= e(asset_v('css/tokens.css')) ?>">
 <link rel="stylesheet" href="<?= e(asset_v('css/app.css')) ?>">
 <link rel="stylesheet" href="<?= e(asset_v('css/form.css')) ?>">
+<link rel="stylesheet" href="<?= e(asset_v('css/receipt.css')) ?>">
 </head>
 <body class="<?= e($bodyClass) ?>">
 <?php partial('ribbon'); ?>
