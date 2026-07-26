@@ -17,7 +17,8 @@ stack and conventions as the Afrostrength site.
 | Area | Routes | Notes |
 |------|--------|-------|
 | **Landing page** | `/` | Hero with the flier's animated **binary "10101"** backdrop + starburst fee badge, six-track list, featured courses, two Lagos campuses, register CTA. |
-| **Summer School** | `/summer`, `/summer/track/{slug}` | Registration page + endpoint. Mints a reference code, emails the family + the academy inbox, soft-fails to `storage/summer.log` if the DB/SMTP aren't configured. |
+| **Summer School** | `/summer`, `/summer/track/{slug}` | Registration page + endpoint, rendered from the **live form definition** (see below). Mints a reference code, emails the family + the academy inbox, soft-fails to `storage/summer.log` if the DB/SMTP aren't configured. |
+| **Form builder** | `/admin/forms` | Visual, logic-based editor for the public registration form. Versioned, previewed against the real renderer, published atomically. |
 | **LMS catalog** | `/academy`, `/academy/{slug}` | Course listing + detail with syllabus, learner enrolment. |
 | **Learner area** | `/login`, `/dashboard` | Student sign-in and "My Learning" with per-course progress. |
 | **RBAC admin** | `/admin/**` | Full operator console with role-based access control. |
@@ -36,8 +37,8 @@ Five roles, each mapped to a set of dotted permissions in
 | Role | Can do |
 |------|--------|
 | **Super Admin** | Everything, including managing operators and settings. |
-| **Administrator** | Registrations, students, courses, content. Not operators. |
-| **Registrar** | Own the summer intake — review, confirm, export. |
+| **Administrator** | Registrations, students, courses, content, and publishing the public registration form. Not operators. |
+| **Registrar** | Own the summer intake — review, confirm, export. Reads the form builder. |
 | **Instructor** | Manage courses, view enrolled students. |
 | **Viewer** | Read-only across the admin. |
 
@@ -72,6 +73,10 @@ AFT_DEBUG=1 php -S 127.0.0.1:8000 index.php
 mysql -u root -p -e "CREATE DATABASE afrotech CHARACTER SET utf8mb4"
 mysql -u root -p afrotech < database/schema.sql
 mysql -u root -p afrotech < database/seed.sql   # tracks, courses, first super admin
+
+# 2b. Existing installs only — schema.sql already contains these. Adds the
+#     form-builder tables/columns; re-running it is a no-op.
+mysql -u root -p afrotech < database/migrations/2026-07-form-builder.sql
 
 # 3. Create your own operator (recommended over the seeded default)
 php scripts/create-admin.php owner you@example.com 'a-strong-password' super_admin
@@ -109,6 +114,69 @@ live countdown) and **discount codes** (percent or fixed, with usage limits and
 date windows) are managed at `/admin/promotions` and `/admin/discounts` and applied
 at checkout.
 
+---
+
+## The form builder
+
+`/summer` does not have a hard-coded form. It renders whatever the **live form
+definition** says, and operators edit that definition at **`/admin/forms`** —
+no deploy, no developer.
+
+**Blocks.** 21 types: short text, paragraph, email, phone, URL, number, date,
+time, choice (radio or dropdown), multi-select, yes/no, consent, 1–10 scale,
+country, file, hidden/captured — plus page breaks, section headings, info text
+and dividers for structure.
+
+**Logic.** Any block can carry two independent rule groups, each matching
+**all** or **any** of up to 12 rules across 18 operators (`is`, `is not`,
+contains, starts/ends with, `>`, `≥`, `<`, `≤`, between, one of, none of,
+includes, blank, has any answer, ticked, unticked):
+
+- **Show / hide** — a field appears only when the rules pass.
+- **Require conditionally** — a field only demands an answer when they do.
+
+Rules may only reference fields **above** them, which is enforced on save: a
+rule about a later answer could never be true, so it is a mistake rather than a
+feature. Chains work — B depends on A, C depends on B — because visibility is
+resolved to a **fixed point**, not in a single pass.
+
+**Validation.** Per field: min/max value, min/max length, min/max selections,
+and an operator-authored regex with its own error message. A pattern that
+doesn't compile is refused at save time rather than breaking the public form.
+
+**Pricing.** A field or an individual option can carry a naira amount. Selected
+add-ons move the running total on the page and the amount actually charged at
+checkout — the fee is stored on the registration, not recomputed from settings.
+
+**Steps.** Page breaks split the form into steps with a progress rail; each step
+validates before it advances.
+
+**The server is the authority.** `assets/js/form-logic.js` mirrors
+[`src/core/FormEngine.php`](src/core/FormEngine.php) so the form reacts
+instantly, but on submit the server re-resolves visibility, re-validates every
+answer and recomputes the price from what it decided was askable. A crafted POST
+cannot answer a hidden question, skip a required one, or buy an add-on the logic
+never offered. With JavaScript off the form still works — every field is present
+and posts normally.
+
+**Versioning.** Editing writes a draft; publishing archives the current live
+version and inserts a new one in a single transaction, so there is never a
+window with two live definitions or none. Every submission records the version
+that collected it, so the ops console and CSV export replay answers against the
+questions that were actually asked. Any past version can be rolled forward, and
+the definition exports as JSON.
+
+Run the engine's test suite (no database needed):
+
+```bash
+php scripts/test-form-engine.php
+```
+
+Field keys can be mapped onto the registration record's own columns
+(`student_name`, `email`, `track_slug`, …); the six the intake pipeline needs are
+locked and cannot be removed. Everything else is stored as an answer. A field
+marked **sensitive** stays inside the console — never exported, never emailed.
+
 ### Binary "10101" effect
 The flier's digital backdrop is a self-contained, CSP-safe engine
 (`assets/js/binary-matrix.js`): DPR-aware canvas, parallax depth, glowing heads,
@@ -134,14 +202,16 @@ on the dark variant.
 index.php              front controller + hardened session
 config/                app, database, mail, routes
 src/core/              Router, Controller, View, Auth, Rbac, StudentAuth,
-                       Ids, Mailer, Validator, Csrf, Security, Database, Helpers
+                       Ids, Mailer, Validator, Csrf, Security, Database, Helpers,
+                       FormEngine (logic + validation), FormRenderer
 src/models/            AdminUser, Track, Course, Student, Enrollment,
-                       SummerRegistration, ContentBlock
+                       SummerRegistration, ContentBlock, FormDef
 src/controllers/       public controllers + Admin/ (namespaced) console
 src/views/             layouts, pages, admin, partials, emails
-assets/                css (tokens, app, admin), js (app.js), images
-database/              schema.sql, seed.sql
-scripts/               create-admin.php
+assets/                css (tokens, app, admin, form, builder),
+                       js (app.js, form-logic.js, form-builder.js), images
+database/              schema.sql, seed.sql, migrations/
+scripts/               create-admin.php, test-form-engine.php
 ```
 
 Security baseline: hardened session cookie (HttpOnly/SameSite/Secure/strict),

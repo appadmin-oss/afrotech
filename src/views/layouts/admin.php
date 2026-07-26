@@ -7,6 +7,7 @@ $nav = [
   ]],
   ['Summer school', [
     ['/admin/summer',     'Registrations',   'registrations.view'],
+    ['/admin/forms',      'Form builder',    'forms.view'],
     ['/admin/payments',   'Payments',        'payments.view'],
     ['/admin/discounts',  'Discount codes',  'discounts.manage'],
   ]],
@@ -29,13 +30,16 @@ $nav = [
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($title) ?></title>
 <meta name="robots" content="noindex">
-<script>try{var t=localStorage.getItem('aft-admin-theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<script src="<?= e(asset_v('js/theme-boot.js')) ?>" data-key="aft-admin-theme" data-default="dark"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= e(asset_v('css/tokens.css')) ?>">
 <link rel="stylesheet" href="<?= e(asset_v('css/app.css')) ?>">
 <link rel="stylesheet" href="<?= e(asset_v('css/admin.css')) ?>">
+<?php foreach (($pageCss ?? []) as $css): ?>
+<link rel="stylesheet" href="<?= e(asset_v('css/' . $css)) ?>">
+<?php endforeach; ?>
 </head>
 <body>
 <div class="admin">
@@ -62,5 +66,8 @@ $nav = [
   <div class="main"><?= $bodyContent ?></div>
 </div>
 <script src="<?= e(asset_v('js/app.js')) ?>" defer></script>
+<?php foreach (($pageJs ?? []) as $js): ?>
+<script src="<?= e(asset_v('js/' . $js)) ?>" defer></script>
+<?php endforeach; ?>
 </body>
 </html>

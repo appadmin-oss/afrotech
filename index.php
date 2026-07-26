@@ -48,6 +48,9 @@ require AFT_ROOT . '/src/core/Auth.php';
 require AFT_ROOT . '/src/core/StudentAuth.php';
 require AFT_ROOT . '/src/core/View.php';
 require AFT_ROOT . '/src/core/Validator.php';
+// The form builder's engine (pure logic) and its renderer.
+require AFT_ROOT . '/src/core/FormEngine.php';
+require AFT_ROOT . '/src/core/FormRenderer.php';
 require AFT_ROOT . '/src/core/Ids.php';
 require AFT_ROOT . '/src/core/Mailer.php';
 require AFT_ROOT . '/src/core/Paystack.php';

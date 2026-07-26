@@ -22,9 +22,20 @@ class SummerController extends \Controller {
         \Rbac::require('registrations.view');
         $row = \SummerRegistration::find((int)$id);
         if (!$row) { $this->notFound(); return; }
+
+        // Replay the answers against the exact form version that collected
+        // them, so a question renamed since then still reads correctly here.
+        $version = (int)($row['form_version'] ?? 1);
+        $def = \FormDef::findVersion(\FormDef::SUMMER, $version) ?? \FormDef::live();
+        $answers = \SummerRegistration::answers($row);
+
         $this->view('admin/summer/show', [
-            'title' => $row['reg_code'] . ' · ' . AFT_NAME . ' Ops',
-            'r'     => $row,
+            'title'       => $row['reg_code'] . ' · ' . AFT_NAME . ' Ops',
+            'r'           => $row,
+            'formVersion' => $version,
+            'answerRows'  => $answers
+                ? \FormEngine::presentAnswers(\FormEngine::resolve($def['fields'] ?? []), $answers, true)
+                : [],
         ], 'admin');
     }
 
@@ -50,16 +61,42 @@ class SummerController extends \Controller {
             'track'  => (string)$this->input('track', ''),
             'q'      => (string)$this->input('q', ''),
         ]);
+        // Builder answers become their own columns, in form order, using the
+        // live definition's labels. Fields flagged sensitive are omitted —
+        // that flag exists precisely to keep them out of spreadsheets.
+        $live     = \FormDef::live();
+        $resolved = \FormEngine::resolve($live['fields'] ?? []);
+        $core     = array_keys(\FormEngine::MAPPABLE);
+        $extra    = [];
+        foreach ($resolved as $f) {
+            if (in_array($f['type'], \FormEngine::LAYOUT_TYPES, true)) continue;
+            if (!empty($f['sensitive'])) continue;
+            if (!empty($f['map']) && in_array($f['map'], $core, true)) continue;
+            $extra[$f['key']] = ['label' => $f['label'], 'labels' => \FormEngine::optionLabels($f)];
+        }
+
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="afrotech-summer-registrations-' . date('Ymd') . '.csv"');
         $out = fopen('php://output', 'w');
-        fputcsv($out, ['Reg code','Student','Age','Guardian','Email','Phone','Track','Location','Experience','Status','Payment','Registered']);
+        fputcsv($out, array_merge(
+            ['Reg code','Student','Age','Guardian','Email','Phone','Track','Location','Experience','Fee','Add-ons','Status','Payment','Form version','Registered'],
+            array_map(fn($m) => $m['label'], $extra)
+        ));
         foreach ($rows as $r) {
-            fputcsv($out, [
+            $answers = \SummerRegistration::answers($r);
+            $line = [
                 $r['reg_code'], $r['student_name'], $r['student_age'], $r['guardian_name'],
                 $r['email'], $r['phone'], $r['track_name'], $r['location_pref'],
-                $r['experience'], $r['status'], $r['payment_status'], $r['created_at'],
-            ]);
+                $r['experience'], $r['fee_naira'], $r['addons_naira'] ?? 0,
+                $r['status'], $r['payment_status'], $r['form_version'] ?? 1, $r['created_at'],
+            ];
+            foreach ($extra as $key => $meta) {
+                $v = $answers[$key] ?? '';
+                if (is_array($v)) $v = implode('; ', array_map(fn($x) => $meta['labels'][(string)$x] ?? (string)$x, $v));
+                else $v = $meta['labels'][(string)$v] ?? (string)$v;
+                $line[] = $v;
+            }
+            fputcsv($out, $line);
         }
         fclose($out);
         exit;

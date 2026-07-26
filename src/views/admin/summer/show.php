@@ -1,5 +1,7 @@
-<?php /** @var array $r */
+<?php /** @var array $r @var array $answerRows @var int $formVersion */
 $canManage = Rbac::can('registrations.manage');
+$answerRows = $answerRows ?? [];
+$addons = max(0, (int)($r['addons_naira'] ?? 0));
 ?>
 <div class="topbar">
   <div><a class="pill" href="<?= e(url('/admin/summer')) ?>">← Registrations</a>
@@ -23,13 +25,37 @@ $canManage = Rbac::can('registrations.manage');
         <tr><th>Phone</th><td class="mono"><a href="tel:<?= e($r['phone']) ?>"><?= e($r['phone']) ?></a></td></tr>
         <tr><th>Campus</th><td><?= e($r['location_pref'] ?: '—') ?></td></tr>
         <tr><th>Experience</th><td><?= e($r['experience']) ?></td></tr>
-        <tr><th>Fee</th><td><?= e(naira((int)$r['fee_naira'])) ?></td></tr>
+        <tr><th>Fee</th><td><?= e(naira((int)$r['fee_naira'])) ?>
+          <?php if ($addons > 0): ?><span class="muted">(includes <?= e(naira($addons)) ?> in add-ons)</span><?php endif; ?>
+        </td></tr>
         <tr><th>Registered</th><td><?= e(datetime_pretty($r['created_at'])) ?></td></tr>
+        <tr><th>Form version</th><td class="mono">v<?= (int)($formVersion ?? 1) ?></td></tr>
       </tbody>
     </table>
     <?php if (!empty($r['notes'])): ?>
       <h3 class="mt-4" style="font-size:var(--fs-h3)">Notes</h3>
       <p><?= nl2br(e($r['notes'])) ?></p>
+    <?php endif; ?>
+
+    <?php if ($answerRows): ?>
+      <h3 class="mt-6" style="font-size:var(--fs-h3)">Form answers</h3>
+      <p class="muted" style="font-size:var(--fs-xs)">
+        Every question the form asked when this family applied — replayed against v<?= (int)($formVersion ?? 1) ?>.
+      </p>
+      <table class="data mt-4" style="border:0">
+        <tbody>
+          <?php foreach ($answerRows as $row): ?>
+            <tr>
+              <th style="white-space:normal"><?= e($row['label']) ?>
+                <?php if ($row['sensitive']): ?>
+                  <span class="chip chip--waived" title="Sensitive — excluded from exports and emails">sensitive</span>
+                <?php endif; ?>
+              </th>
+              <td style="white-space:normal"><?= nl2br(e($row['value'])) ?></td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
     <?php endif; ?>
   </div>
 

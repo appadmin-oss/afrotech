@@ -139,7 +139,7 @@
       fetch(cfg.quote, {
         method: 'POST',
         headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': cfg.csrf },
-        body: new URLSearchParams({ code: code, _csrf: cfg.csrf })
+        body: new URLSearchParams({ code: code, reg_code: cfg.reg || '', _csrf: cfg.csrf })
       })
       .then(function (r) { return r.json(); })
       .then(function (j) {

@@ -53,6 +53,15 @@ $router->get('/admin/summer/{id}',         ['Admin\SummerController', 'show']);
 $router->post('/admin/summer/{id}/status', ['Admin\SummerController', 'updateStatus']);
 $router->post('/admin/summer/{id}/payment',['Admin\SummerController', 'updatePayment']);
 
+// Registration form builder (logic-based; publishes versions of /summer)
+$router->get('/admin/forms',               ['Admin\FormsController', 'index']);
+$router->get('/admin/forms/preview',       ['Admin\FormsController', 'preview']);
+$router->get('/admin/forms/export.json',   ['Admin\FormsController', 'export']);
+$router->post('/admin/forms/draft',        ['Admin\FormsController', 'saveDraft']);
+$router->post('/admin/forms/publish',      ['Admin\FormsController', 'publish']);
+$router->post('/admin/forms/discard',      ['Admin\FormsController', 'discard']);
+$router->post('/admin/forms/rollback',     ['Admin\FormsController', 'rollback']);
+
 // Courses
 $router->get('/admin/courses',            ['Admin\CoursesController', 'index']);
 $router->get('/admin/courses/new',        ['Admin\CoursesController', 'edit']);

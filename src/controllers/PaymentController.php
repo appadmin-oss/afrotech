@@ -15,17 +15,34 @@ class PaymentController extends Controller {
         $this->view('pages/checkout', [
             'title'        => 'Complete payment · ' . AFT_NAME,
             'reg'          => $reg,
-            'fee'          => Setting::fee(),
+            'fee'          => self::amountFor($reg),
+            'baseFee'      => Setting::fee(),
+            'addons'       => max(0, (int)($reg['addons_naira'] ?? 0)),
             'paid'         => ($reg['payment_status'] === 'paid') || ($payment && $payment['status'] === 'succeeded'),
             'gateway'      => Setting::bool('payment_enabled', true) && Paystack::enabled(),
             'bankDetails'  => Setting::get('bank_transfer_details'),
         ], 'main');
     }
 
+    /**
+     * What this registration owes: the fee captured at registration time,
+     * which already includes any add-ons the form's logic priced. Older rows
+     * (and the offline fallback) have no stored fee, so the current base
+     * programme fee stands in.
+     */
+    public static function amountFor(?array $reg): int {
+        $stored = (int)($reg['fee_naira'] ?? 0);
+        return $stored > 0 ? $stored : Setting::fee();
+    }
+
     /** POST /api/checkout/quote — live discount estimate (JSON). */
     public function quote(): void {
         Csrf::require();
-        $fee = Setting::fee();
+        // Quote against the registration being paid for, not the base fee, or
+        // a percentage code would be computed off the wrong amount.
+        $code = strtoupper(trim((string)$this->input('reg_code', '')));
+        $reg  = $code !== '' ? SummerRegistration::findByCode($code) : null;
+        $fee  = self::amountFor($reg);
         $res = Discount::evaluate((string)$this->input('code', ''), $fee);
         if (!$res['ok']) {
             $this->json(['ok' => false, 'message' => $res['error'], 'base' => $fee, 'total' => $fee]);
@@ -52,7 +69,7 @@ class PaymentController extends Controller {
             return;
         }
 
-        $fee = Setting::fee();
+        $fee = self::amountFor($reg);
         $codeStr = (string)$this->input('discount_code', '');
         $discount = 0; $applied = null;
         if ($codeStr !== '') {

@@ -21,30 +21,66 @@ class SummerRegistration {
             return ['id' => 0, 'reg_code' => $code];
         }
 
+        // The fee travels with the record because builder add-ons can move it
+        // per registration; Setting::fee() is only the base.
+        $fee     = isset($d['fee_naira']) ? max(0, (int)$d['fee_naira']) : Setting::fee();
+        $answers = isset($d['answers']) && is_array($d['answers'])
+            ? json_encode($d['answers'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+            : null;
+
+        $cols = [
+            'reg_code'      => $code,
+            'student_name'  => $d['student_name'] ?? '',
+            'student_age'   => (int)($d['student_age'] ?? 0),
+            'guardian_name' => $d['guardian_name'] ?? '',
+            'email'         => strtolower(trim($d['email'] ?? '')),
+            'phone'         => $d['phone'] ?? '',
+            'track_slug'    => $d['track_slug'] ?? null,
+            'track_name'    => $d['track_name'] ?? null,
+            'location_pref' => $d['location_pref'] ?? null,
+            'experience'    => in_array($d['experience'] ?? 'none', ['none','some','confident'], true) ? $d['experience'] : 'none',
+            'notes'         => $d['notes'] ?? null,
+            'fee_naira'     => $fee,
+            'source'        => $d['source'] ?? 'web',
+            'request_ip'    => $_SERVER['REMOTE_ADDR'] ?? null,
+        ];
+        // Written only where the form-builder migration has been applied, so a
+        // deploy that ships code before SQL still takes registrations.
+        if (self::hasBuilderColumns()) {
+            $cols['answers_json'] = $answers;
+            $cols['form_version'] = (int)($d['form_version'] ?? 1);
+            $cols['addons_naira'] = max(0, (int)($d['addons_naira'] ?? 0));
+        }
+
+        $names = array_keys($cols);
         $id = (int) Database::insert(
-            "INSERT INTO summer_registrations
-                (reg_code, student_name, student_age, guardian_name, email, phone,
-                 track_slug, track_name, location_pref, experience, notes, fee_naira,
-                 source, request_ip)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            [
-                $code,
-                $d['student_name'] ?? '',
-                (int)($d['student_age'] ?? 0),
-                $d['guardian_name'] ?? '',
-                strtolower(trim($d['email'] ?? '')),
-                $d['phone'] ?? '',
-                $d['track_slug'] ?? null,
-                $d['track_name'] ?? null,
-                $d['location_pref'] ?? null,
-                in_array($d['experience'] ?? 'none', ['none','some','confident'], true) ? $d['experience'] : 'none',
-                $d['notes'] ?? null,
-                self::FEE,
-                $d['source'] ?? 'web',
-                $_SERVER['REMOTE_ADDR'] ?? null,
-            ]
+            'INSERT INTO summer_registrations (' . implode(', ', $names) . ') VALUES ('
+            . implode(', ', array_fill(0, count($names), '?')) . ')',
+            array_values($cols)
         );
         return ['id' => $id, 'reg_code' => $code];
+    }
+
+    /** Decoded builder answers for a row. */
+    public static function answers(array $row): array {
+        $raw = $row['answers_json'] ?? null;
+        if (!$raw) return [];
+        $d = json_decode((string)$raw, true);
+        return is_array($d) ? $d : [];
+    }
+
+    /**
+     * Has the form-builder migration run? Cached per request — the columns
+     * either exist for the whole request or they don't.
+     */
+    public static function hasBuilderColumns(): bool {
+        static $has = null;
+        if ($has !== null) return $has;
+        if (!Database::available()) return $has = false;
+        try {
+            $rows = Database::all("SHOW COLUMNS FROM summer_registrations LIKE 'answers_json'");
+            return $has = (bool)$rows;
+        } catch (Throwable $e) { return $has = false; }
     }
 
     /** Filtered, paginated list for the registrar console. */

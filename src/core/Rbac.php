@@ -41,6 +41,8 @@ class Rbac {
         'courses.view'        => 'View courses',
         'courses.manage'      => 'Create / edit / publish courses',
         'content.manage'      => 'Edit landing-page content blocks',
+        'forms.view'          => 'View the registration form builder',
+        'forms.manage'        => 'Edit and publish the public registration form',
         'payments.view'       => 'View the payments ledger',
         'promotions.manage'   => 'Manage promotions & the announcement ribbon',
         'discounts.manage'    => 'Manage discount codes',
@@ -58,6 +60,9 @@ class Rbac {
             'students.view', 'students.manage',
             'courses.view', 'courses.manage',
             'content.manage',
+            // Editing the live public form is an admin-and-above capability;
+            // a registrar can read it to understand what a submission means.
+            'forms.view', 'forms.manage',
             'payments.view',
             'promotions.manage', 'discounts.manage',
             'settings.manage',
@@ -68,6 +73,7 @@ class Rbac {
             'registrations.view', 'registrations.manage',
             'students.view',
             'courses.view',
+            'forms.view',
             'payments.view',
             'discounts.manage',
         ],

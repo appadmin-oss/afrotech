@@ -12,12 +12,13 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="<?= e(AFT_NAME) ?>">
 <meta name="theme-color" content="#E4022B">
-<script>/* apply persisted theme before paint */try{var t=localStorage.getItem('aft-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<script src="<?= e(asset_v('js/theme-boot.js')) ?>" data-key="aft-theme"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= e(asset_v('css/tokens.css')) ?>">
 <link rel="stylesheet" href="<?= e(asset_v('css/app.css')) ?>">
+<link rel="stylesheet" href="<?= e(asset_v('css/form.css')) ?>">
 </head>
 <body class="<?= e($bodyClass) ?>">
 <?php partial('ribbon'); ?>
@@ -25,6 +26,7 @@
 <main id="main"><?= $bodyContent ?></main>
 <?php partial('footer'); ?>
 <script src="<?= e(asset_v('js/binary-matrix.js')) ?>" defer></script>
+<script src="<?= e(asset_v('js/form-logic.js')) ?>" defer></script>
 <script src="<?= e(asset_v('js/app.js')) ?>" defer></script>
 </body>
 </html>

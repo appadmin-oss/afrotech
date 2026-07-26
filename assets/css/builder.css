@@ -1,0 +1,171 @@
+/* ================================================================
+   Afrotech Academy — form builder (operator console only).
+   Dense, keyboard-friendly editing chrome. Tokens only.
+================================================================== */
+
+.fbx { display: grid; gap: var(--sp-4); }
+.fbx [hidden] { display: none !important; }
+
+/* ---- Sticky action bar --------------------------------------- */
+.fbx__bar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
+  flex-wrap: wrap; padding: var(--sp-4) var(--sp-5);
+  background: var(--card); border: 1px solid var(--hair); border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+}
+.fbx__bar-main { min-width: 220px; }
+.fbx__bar-actions { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.fbx__name {
+  font: inherit; font-family: var(--ff-display); font-weight: 700; font-size: var(--fs-lg);
+  color: var(--ink); background: transparent; border: 1.5px solid transparent;
+  border-radius: var(--r-sm); padding: .3rem .5rem; min-width: 280px; max-width: 100%;
+}
+.fbx__name:hover { border-color: var(--hair); }
+.fbx__name:focus { outline: none; border-color: var(--red); background: var(--card-2); }
+.fbx__meta { font-size: var(--fs-xs); color: var(--txt-3); margin-top: 2px; padding-left: .5rem; }
+.fbx__bar-actions .is-active { background: var(--card-2); border-color: var(--ink); }
+.fbx__bar-actions .is-hot { animation: fbxPulse 1.8s ease-in-out infinite; }
+@keyframes fbxPulse { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--red) 22%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .fbx__bar-actions .is-hot { animation: none; } }
+
+/* ---- Inline messages ---------------------------------------- */
+.fbx__msg {
+  border-radius: var(--r-md); padding: var(--sp-3) var(--sp-4);
+  font-size: var(--fs-sm); font-weight: 600; border: 1px solid var(--hair);
+}
+.fbx__msg--ok  { background: #e6f7ee; border-color: #a6e0c0; color: #1c6b45; }
+.fbx__msg--err { background: #fdecee; border-color: #f4b8c1; color: #a80016; }
+:root[data-theme="dark"] .fbx__msg--ok  { background: rgba(46,216,138,.1); color: #7ce6b2; }
+:root[data-theme="dark"] .fbx__msg--err { background: rgba(228,2,43,.14); color: #ff9aab; }
+
+/* ---- Block list --------------------------------------------- */
+.fbx__list { display: grid; gap: var(--sp-2); }
+.fbx__empty {
+  border: 1px dashed var(--hair); border-radius: var(--r-md); padding: var(--sp-6);
+  text-align: center; color: var(--txt-3); font-size: var(--fs-sm);
+}
+.fbx__row {
+  display: grid; grid-template-columns: 34px 1fr auto; gap: var(--sp-2); align-items: start;
+  background: var(--card); border: 1px solid var(--hair); border-radius: var(--r-md);
+  padding: var(--sp-3); transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.fbx__row:hover { border-color: color-mix(in srgb, var(--red) 30%, var(--hair)); }
+.fbx__row.is-open { border-color: var(--red); box-shadow: var(--shadow-sm); }
+.fbx__row--step { background: var(--card-2); border-style: dashed; }
+.fbx__row-rail, .fbx__row-actions { display: flex; flex-direction: column; gap: 4px; }
+.fbx__row-actions { flex-direction: row; }
+.fbx__mv {
+  background: var(--card-2); border: 1px solid var(--hair); border-radius: var(--r-sm);
+  width: 28px; height: 26px; color: var(--txt-2); font-size: 13px; cursor: pointer;
+  display: grid; place-items: center; transition: all var(--t-fast);
+}
+.fbx__mv:hover:not(:disabled) { border-color: var(--ink); color: var(--ink); }
+.fbx__mv:disabled { opacity: .35; cursor: not-allowed; }
+.fbx__mv--del:hover { border-color: var(--red); color: var(--red); }
+
+.fbx__row-head { cursor: pointer; min-width: 0; }
+.fbx__row-title { font-family: var(--ff-display); font-weight: 600; font-size: var(--fs-md); color: var(--ink); }
+.fbx__row-sub { font-size: var(--fs-xs); color: var(--txt-3); margin-top: 2px; }
+.fbx__chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.fbx__chip {
+  font-family: var(--ff-mono); font-size: 10.5px; letter-spacing: .04em; text-transform: uppercase;
+  background: var(--card-2); color: var(--txt-3); border: 1px solid var(--hair);
+  border-radius: var(--r-pill); padding: .12em .6em;
+}
+.fbx__chip--lock  { border-color: var(--txt-3); color: var(--txt-2); }
+.fbx__chip--logic { background: color-mix(in srgb, #2b4c9b 12%, transparent); border-color: #2b4c9b55; color: #2b4c9b; }
+.fbx__chip--price { background: color-mix(in srgb, var(--red) 12%, transparent); border-color: color-mix(in srgb, var(--red) 40%, transparent); color: var(--red); }
+.fbx__chip--warn  { background: #fff3d6; border-color: #e8cf95; color: #8a6100; }
+:root[data-theme="dark"] .fbx__chip--logic { color: #9db4ec; }
+:root[data-theme="dark"] .fbx__chip--warn  { background: rgba(201,133,26,.16); color: #e7c374; }
+
+/* ---- Field editor ------------------------------------------- */
+.fbx__editor {
+  margin-top: var(--sp-3); padding-top: var(--sp-3);
+  border-top: 1px solid var(--hair); display: grid; gap: var(--sp-3);
+}
+.fbx__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-3); }
+.fbx__lab {
+  display: grid; gap: 4px; font-family: var(--ff-mono); font-size: 10.5px;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--txt-3);
+}
+.fbx__in {
+  font: inherit; font-family: var(--ff-body); font-size: var(--fs-sm); text-transform: none; letter-spacing: 0;
+  color: var(--txt); background: var(--card-2); border: 1.5px solid var(--hair);
+  border-radius: var(--r-sm); padding: .5rem .65rem; width: 100%;
+}
+.fbx__in:focus { outline: none; border-color: var(--red); background: var(--card); }
+.fbx__in:disabled { opacity: .6; cursor: not-allowed; }
+.fbx__in--sm { max-width: 150px; }
+.fbx__in--xs { max-width: 96px; }
+.fbx__hint { font-size: 10px; color: var(--txt-3); text-transform: none; letter-spacing: 0; }
+.fbx__toggles { display: flex; flex-wrap: wrap; gap: var(--sp-4); }
+.fbx__toggle {
+  display: inline-flex; align-items: center; gap: .45rem;
+  font-size: var(--fs-sm); color: var(--txt-2); cursor: pointer;
+}
+.fbx__toggle input { accent-color: var(--red); }
+.fbx__note { font-size: var(--fs-xs); }
+
+.fbx__block {
+  background: var(--card-2); border: 1px solid var(--hair); border-radius: var(--r-sm);
+  padding: var(--sp-3); display: grid; gap: var(--sp-3);
+}
+.fbx__block-head {
+  font-family: var(--ff-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--txt-3); display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);
+}
+
+/* ---- Options ------------------------------------------------ */
+.fbx__opts { display: grid; gap: var(--sp-2); }
+.fbx__opt { display: flex; gap: var(--sp-2); align-items: center; }
+.fbx__opt .fbx__in { min-width: 0; }
+
+/* ---- Logic rules -------------------------------------------- */
+.fbx__logicline { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.fbx__logicline .fbx__in { max-width: 260px; }
+.fbx__rule {
+  display: flex; gap: var(--sp-2); align-items: center; flex-wrap: wrap;
+  border-left: 2px solid color-mix(in srgb, var(--red) 55%, transparent);
+  padding-left: var(--sp-3);
+}
+.fbx__rule .fbx__in { max-width: 230px; }
+
+/* ---- Logic map ---------------------------------------------- */
+.fbx__mapline {
+  background: var(--card); border: 1px solid var(--hair); border-left: 3px solid var(--red);
+  border-radius: var(--r-sm); padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-2);
+  font-size: var(--fs-sm); color: var(--txt-2); line-height: 1.7;
+}
+.fbx__maprule {
+  font-family: var(--ff-mono); font-size: var(--fs-xs); background: var(--card-2);
+  border: 1px solid var(--hair); border-radius: var(--r-pill); padding: .1em .6em; white-space: nowrap;
+}
+
+/* ---- Settings pane ------------------------------------------ */
+.fbx__settings {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--sp-4);
+  background: var(--card); border: 1px solid var(--hair); border-radius: var(--r-md); padding: var(--sp-5);
+}
+
+/* ---- Add palette -------------------------------------------- */
+.fbx__add {
+  background: var(--card); border: 1px dashed var(--hair); border-radius: var(--r-md);
+  padding: var(--sp-4); display: grid; gap: var(--sp-3);
+}
+.fbx__add-grid { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+
+/* ---- Preview ------------------------------------------------ */
+.fbx__preview { display: grid; gap: var(--sp-2); }
+.fbx__preview-note { font-size: var(--fs-xs); }
+.fbx__frame {
+  width: 100%; min-height: 720px; border: 1px solid var(--hair);
+  border-radius: var(--r-md); background: var(--paper);
+}
+
+@media (max-width: 700px) {
+  .fbx__row { grid-template-columns: 28px 1fr; }
+  .fbx__row-actions { grid-column: 2; justify-content: flex-end; }
+  .fbx__name { min-width: 0; width: 100%; }
+}

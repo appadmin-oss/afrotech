@@ -110,7 +110,13 @@ CREATE TABLE IF NOT EXISTS `summer_registrations` (
     `location_pref`    VARCHAR(120) DEFAULT NULL,
     `experience`       VARCHAR(40)  DEFAULT 'none',
     `notes`            TEXT,
+    -- Builder answers: every non-core field keyed by field key, plus the
+    -- form version that asked them (see form_defs) so an answer set can be
+    -- replayed against the questions as they stood at submission time.
+    `answers_json`     MEDIUMTEXT   NULL DEFAULT NULL,
+    `form_version`     INT UNSIGNED NOT NULL DEFAULT 1,
     `fee_naira`        INT NOT NULL DEFAULT 40000,
+    `addons_naira`     INT NOT NULL DEFAULT 0,
     `payment_status`   ENUM('unpaid','paid','waived') NOT NULL DEFAULT 'unpaid',
     `status`           ENUM('pending','confirmed','waitlisted','cancelled') NOT NULL DEFAULT 'pending',
     `source`           VARCHAR(60)  DEFAULT 'web',
@@ -122,6 +128,27 @@ CREATE TABLE IF NOT EXISTS `summer_registrations` (
     KEY `summer_status`  (`status`),
     KEY `summer_email`   (`email`),
     KEY `summer_created` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----- Form definitions (the logic-based form builder) -------
+-- One row per VERSION of a form. Exactly one row per `form_key` is
+-- `live` (what the public renders), at most one is `draft` (the
+-- builder's working copy), and the rest are `archived` history that
+-- can be rolled forward again. `fields_json` is the ordered block
+-- list: field types, validation, conditional logic and pricing.
+CREATE TABLE IF NOT EXISTS `form_defs` (
+    `id`            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `form_key`      VARCHAR(60)  NOT NULL,
+    `version`       INT UNSIGNED NOT NULL DEFAULT 1,
+    `name`          VARCHAR(160) NOT NULL,
+    `fields_json`   MEDIUMTEXT   NOT NULL,
+    `settings_json` TEXT         NULL DEFAULT NULL,
+    `status`        ENUM('draft','live','archived') NOT NULL DEFAULT 'draft',
+    `published_by`  INT UNSIGNED NULL DEFAULT NULL,
+    `created_at`    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `form_defs_key_version` (`form_key`, `version`),
+    KEY `form_defs_live` (`form_key`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----- Editable content blocks (landing-page copy) -----------

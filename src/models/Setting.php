@@ -21,6 +21,9 @@ class Setting {
             'cohort_start'          => '2026-08-04',
             'registration_deadline' => '2026-07-31 23:59:00',
             'seats_total'           => '120',
+            // One campus per line, "value | label". Form fields bound to the
+            // "campuses" option source read this list.
+            'campuses'              => "Egbeda | Egbeda — 2 Oremeji Street\nIshefun | Ishefun — 18 Camp Davis Road\nOnline | Online (live classes)",
             'payment_enabled'       => '1',
             'payment_provider'      => 'paystack',
             'bank_transfer_details' => 'Afrostrength Limited · GTBank · 0123456789 (quote your reference code)',
@@ -32,7 +35,7 @@ class Setting {
     /** Editable keys grouped for the admin settings screen. */
     public static function groups(): array {
         return [
-            'Program' => ['program_name','age_label','min_age','cohort_label','cohort_start','seats_total'],
+            'Program' => ['program_name','age_label','min_age','cohort_label','cohort_start','seats_total','campuses'],
             'Pricing & payment' => ['summer_fee','currency_symbol','currency_code','payment_enabled','payment_provider','bank_transfer_details'],
             'Deadline' => ['registration_deadline'],
             'Contact' => ['whatsapp_phone','contact_email'],

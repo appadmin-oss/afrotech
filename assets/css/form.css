@@ -1,0 +1,128 @@
+/* ================================================================
+   Afrotech Academy — builder-driven form runtime.
+   Public styles for anything FormRenderer emits: steps, option cards,
+   priced add-ons, the running total. Tokens only, light + dark.
+================================================================== */
+
+/* Every display rule below (and .btn's inline-flex) would otherwise beat the
+   [hidden] attribute — and [hidden] is how the logic engine hides a step, a
+   field, or the submit button. So it wins here, once, explicitly. */
+.fb-form [hidden], .fb-form[hidden] { display: none !important; }
+
+.fb-form { display: grid; gap: var(--sp-5); }
+
+/* Fields sit on a two-column grid; "half" width fields pair up. */
+.fb-form > .fb-step { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4) var(--sp-4); }
+.fb-step > * { grid-column: 1 / -1; }
+.fb-field--half { grid-column: span 1; }
+@media (max-width: 640px) { .fb-field--half { grid-column: 1 / -1; } }
+
+/* ---- Section headings & info blocks --------------------------- */
+.fb-section { margin-top: var(--sp-3); }
+.fb-section:first-child { margin-top: 0; }
+.fb-section__title {
+  font-family: var(--ff-display); font-weight: 700; font-size: var(--fs-h3);
+  color: var(--ink); display: flex; align-items: center; gap: .6rem;
+}
+.fb-section__title::before {
+  content: ""; width: 18px; height: 3px; border-radius: 2px; background: var(--red); flex: none;
+}
+.fb-section__help { font-size: var(--fs-sm); color: var(--txt-3); margin-top: var(--sp-1); }
+.fb-info {
+  font-size: var(--fs-sm); color: var(--txt-2); background: var(--card-2);
+  border-left: 3px solid var(--red); border-radius: var(--r-sm); padding: var(--sp-3) var(--sp-4);
+}
+.fb-divider { border: 0; border-top: 1px solid var(--hair); margin-block: var(--sp-2); }
+
+/* A field whose requirement depends on earlier answers. */
+.fb-when { color: var(--txt-3); cursor: help; }
+.fb-price {
+  font-family: var(--ff-mono); font-size: var(--fs-xs); font-weight: 700; color: var(--red);
+  background: color-mix(in srgb, var(--red) 10%, transparent); border-radius: var(--r-pill); padding: .1em .6em;
+}
+
+/* ---- Option cards (choice / multi) ---------------------------- */
+.fb-options { display: grid; gap: var(--sp-2); }
+.fb-options--inline { grid-auto-flow: column; justify-content: start; gap: var(--sp-3); }
+.fb-option {
+  display: flex; align-items: flex-start; gap: .75rem; cursor: pointer;
+  background: var(--card); border: 1.5px solid var(--hair); border-radius: var(--r-md);
+  padding: .8rem .95rem; transition: border-color var(--t-fast), background var(--t-fast), transform var(--t-fast);
+}
+.fb-option:hover { border-color: color-mix(in srgb, var(--red) 45%, var(--hair)); }
+.fb-option.is-on {
+  border-color: var(--red); background: color-mix(in srgb, var(--red) 6%, var(--card));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--red) 12%, transparent);
+}
+.fb-option input { width: auto; margin-top: .15rem; accent-color: var(--red); flex: none; }
+.fb-option__body { display: grid; gap: .15rem; min-width: 0; }
+.fb-option__label { font-size: var(--fs-md); font-weight: 600; color: var(--txt); }
+.fb-option__help { font-size: var(--fs-xs); color: var(--txt-3); }
+.fb-option__price {
+  margin-left: auto; font-family: var(--ff-mono); font-size: var(--fs-sm); font-weight: 700;
+  color: var(--red); white-space: nowrap; align-self: center;
+}
+.fb-option--pill { padding: .55rem 1.1rem; border-radius: var(--r-pill); align-items: center; }
+.fb-option--pill .fb-option__label { font-family: var(--ff-display); }
+.field.has-error .fb-option { border-color: color-mix(in srgb, var(--red) 60%, var(--hair)); }
+
+/* ---- Scale 1–10 ---------------------------------------------- */
+.fb-scale { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.fb-scale__dot { cursor: pointer; }
+.fb-scale__dot input { position: absolute; opacity: 0; pointer-events: none; }
+.fb-scale__dot span {
+  display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  border: 1.5px solid var(--hair); font-family: var(--ff-mono); font-size: var(--fs-sm); font-weight: 700;
+  color: var(--txt-2); transition: all var(--t-fast);
+}
+.fb-scale__dot input:checked + span { background: var(--red); border-color: var(--red); color: #fff; }
+.fb-scale__dot input:focus-visible + span { box-shadow: 0 0 0 3px color-mix(in srgb, var(--red) 25%, transparent); }
+
+/* ---- Step progress rail -------------------------------------- */
+.fb-progress {
+  display: flex; align-items: center; gap: var(--sp-2); list-style: none; padding: 0; margin: 0;
+  overflow-x: auto; scrollbar-width: none;
+}
+.fb-progress::-webkit-scrollbar { display: none; }
+.fb-progress__step {
+  display: flex; align-items: center; gap: .5rem; flex: 1; min-width: max-content;
+  font-size: var(--fs-xs); color: var(--txt-3);
+}
+.fb-progress__step + .fb-progress__step::before {
+  content: ""; height: 1.5px; flex: 1; min-width: 18px; background: var(--hair); margin-right: .25rem;
+}
+.fb-progress__pip {
+  display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; flex: none;
+  border: 1.5px solid var(--hair); font-family: var(--ff-mono); font-weight: 700; font-size: 11px;
+  transition: all var(--t-fast);
+}
+.fb-progress__label { font-family: var(--ff-mono); text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
+.fb-progress__step.is-current { color: var(--red); }
+.fb-progress__step.is-current .fb-progress__pip { border-color: var(--red); color: var(--red); }
+.fb-progress__step.is-done .fb-progress__pip { background: var(--red); border-color: var(--red); color: #fff; }
+@media (max-width: 640px) { .fb-progress__label { display: none; } }
+
+/* ---- Running total ------------------------------------------- */
+.fb-total {
+  background: var(--card-2); border: 1px dashed color-mix(in srgb, var(--red) 40%, var(--hair));
+  border-radius: var(--r-md); padding: var(--sp-4) var(--sp-5); display: grid; gap: var(--sp-2);
+}
+.fb-total__row { display: flex; justify-content: space-between; gap: var(--sp-4); font-size: var(--fs-sm); color: var(--txt-2); }
+.fb-total__sum {
+  display: flex; justify-content: space-between; gap: var(--sp-4); align-items: baseline;
+  border-top: 1px solid var(--hair); padding-top: var(--sp-2);
+  font-family: var(--ff-display); font-weight: 700; color: var(--ink);
+}
+.fb-total__sum b { font-size: var(--fs-h3); color: var(--red); }
+
+/* ---- Step navigation ---------------------------------------- */
+.fb-nav { display: flex; gap: var(--sp-3); align-items: center; flex-wrap: wrap; }
+.fb-nav > .fb-nav__submit { flex: 1; }
+.fb-nav__next { margin-left: auto; }
+
+/* Honeypot — off-screen rather than display:none, which some bots skip. */
+.fb-trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+/* Preview inside the builder is inert. */
+.fb-form--preview { opacity: .97; }
+.fb-form--preview .fb-nav__submit { cursor: not-allowed; }

@@ -16,7 +16,13 @@ ob_start(); ?>
 <p style="color:#4A4741;font-size:15px;line-height:1.6;"><strong>What happens next:</strong></p>
 <ul style="color:#4A4741;font-size:15px;line-height:1.7;padding-left:20px;">
   <li>Our team will contact you on <strong><?= e($phone ?? '') ?></strong> to confirm your child's place.</li>
-  <li>Complete the <strong><?= e(Setting::money(Setting::fee())) ?></strong> program fee at secure checkout (card, bank, USSD, or transfer).</li>
+  <li>Complete the <strong><?= e(Setting::money((int)($total ?? Setting::fee()))) ?></strong>
+    <?php if (!empty($addons)): ?>
+      total (<?= e(Setting::money(Setting::fee())) ?> programme fee + <?= e(Setting::money((int)$addons)) ?> in add-ons you chose)
+    <?php else: ?>
+      program fee
+    <?php endif; ?>
+    at secure checkout (card, bank, USSD, or transfer).</li>
   <li>You'll receive campus, dates, and what-to-bring information before the program starts.</li>
 </ul>
 <p style="color:#4A4741;font-size:15px;line-height:1.6;">Please keep your reference code — quote it whenever you contact us.</p>
