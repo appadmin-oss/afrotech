@@ -68,13 +68,21 @@ function partial(string $name, array $vars = []): void {
     require AFT_ROOT . '/src/views/partials/' . $name . '.php';
 }
 
-/** Render a transactional email template to a string. */
-function render_email(string $name, array $vars = []): string {
-    $path = AFT_ROOT . '/src/views/emails/' . $name . '.php';
-    if (!is_file($path)) return '';
-    extract($vars, EXTR_SKIP);
+/**
+ * Render a transactional email template to a string.
+ *
+ * The locals are deliberately mangled. With the obvious `$name` / `$vars`,
+ * `extract(..., EXTR_SKIP)` won't overwrite an existing variable — so a `name`
+ * key (a person's name, the obvious thing to pass) reached the template as the
+ * TEMPLATE name instead, silently. Obscure locals plus EXTR_OVERWRITE means a
+ * template receives exactly what the caller passed.
+ */
+function render_email(string $__tpl, array $__vars = []): string {
+    $__path = AFT_ROOT . '/src/views/emails/' . $__tpl . '.php';
+    if (!is_file($__path)) return '';
+    extract($__vars, EXTR_OVERWRITE);
     ob_start();
-    require $path;
+    require $__path;
     return (string) ob_get_clean();
 }
 
